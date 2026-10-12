@@ -1,0 +1,32 @@
+{
+  "name": "orviz-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "9.74.9",
+    "@fluentui/react-icons": "2.0.344",
+    "cesium": "1.146.0",
+    "dockview-react": "8.5.1",
+    "maplibre-gl": "6.14.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "uplot": "1.6.32",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vite-plugin-static-copy": "4.1.1"
+  }
+}

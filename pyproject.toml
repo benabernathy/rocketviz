@@ -1,0 +1,10 @@
+[project]
+name = "orviz"
+version = "0.1.0"
+description = "Turn OpenRocket simulations into Google Earth KML and a 3D globe viewer"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "jpype1>=1.7.1",
+    "numpy>=2.2.6",
+]
