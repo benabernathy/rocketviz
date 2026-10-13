@@ -8,6 +8,7 @@ import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { currentSim, useStore } from "../store";
 import { bearing, compass, enuToLonLat, lerp, phaseRanges, sigmaEllipse, PHASE_COLOR, SIGMA_COLOR, type Pad } from "../flight";
 import type { Sim } from "../types";
+import { debugHooks } from "../smoke";
 
 // MapLibre looks for its worker next to its own module; once bundled that's wrong, so point it at the emitted asset.
 maplibregl.setWorkerUrl(new URL(maplibreWorker, document.baseURI).href);
@@ -86,6 +87,8 @@ export function Map2D() {
       doubleClickZoom: false,
       attributionControl: { compact: true },
     });
+    debugHooks.map = map;
+    map.on("error", () => { debugHooks.imageryErrors++; });
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
     map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-left");
 
@@ -167,7 +170,12 @@ export function Map2D() {
 
     const ro = new ResizeObserver(() => map.resize());
     ro.observe(host.current!);
-    return () => { ro.disconnect(); unsubs.forEach(u => u()); map.remove(); };
+    return () => {
+      ro.disconnect();
+      unsubs.forEach(u => u());
+      if (debugHooks.map === map) delete debugHooks.map;
+      map.remove();
+    };
   }, []);
 
   return <div ref={host} style={{ position: "absolute", inset: 0 }} />;

@@ -16,3 +16,4 @@ OpenRocket-*.jar
 *.kml
 *_globe.html
 *.orviz.json
+!web/public/samples/*.orviz.json

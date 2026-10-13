@@ -1,5 +1,10 @@
+import { invoke, isTauri } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import type { FlightData } from "./types";
 import { useStore } from "./store";
+
+/** Bundled demo flight, so the app has something to show without OpenRocket. */
+export const SAMPLE_URL = "samples/fizz.orviz.json";
 
 function validate(d: unknown): FlightData {
   const f = d as FlightData;
@@ -9,18 +14,30 @@ function validate(d: unknown): FlightData {
   return f;
 }
 
+const baseName = (p: string) => p.split(/[\\/]/).pop() ?? p;
+
 export async function loadFromUrl(url: string) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
-  useStore.getState().setData(validate(await r.json()), url.split("/").pop() ?? url);
+  useStore.getState().setData(validate(await r.json()), baseName(url));
 }
 
 export async function loadFromFile(file: File) {
   useStore.getState().setData(validate(JSON.parse(await file.text())), file.name);
 }
 
-/** Opens a file picker for a .orviz.json. */
+/** Opens a .orviz.json: the native dialog in the desktop app, a file input in a browser. */
 export function pickFile(onError: (e: Error) => void) {
+  if (isTauri()) {
+    open({ multiple: false, directory: false, filters: [{ name: "orviz flight", extensions: ["json"] }] })
+      .then(async path => {
+        if (typeof path !== "string") return;
+        const text = await invoke<string>("read_flight", { path });
+        useStore.getState().setData(validate(JSON.parse(text)), baseName(path));
+      })
+      .catch(e => onError(e instanceof Error ? e : new Error(String(e))));
+    return;
+  }
   const input = document.createElement("input");
   input.type = "file";
   input.accept = ".json,application/json";

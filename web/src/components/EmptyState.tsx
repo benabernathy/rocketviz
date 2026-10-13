@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, Text, makeStyles, shorthands, tokens, MessageBar, MessageBarBody } from "@fluentui/react-components";
-import { FolderOpenRegular, RocketRegular } from "@fluentui/react-icons";
-import { loadFromFile, pickFile } from "../data";
+import { FolderOpenRegular, RocketRegular, BeakerRegular } from "@fluentui/react-icons";
+import { SAMPLE_URL, loadFromFile, loadFromUrl, pickFile } from "../data";
 
 const useStyles = makeStyles({
   box: {
@@ -36,7 +36,10 @@ export function EmptyState() {
       <Text size={500} weight="semibold">Open a flight</Text>
       <Text>Drop a <span className={styles.code}>.orviz.json</span> file here, or create one from an OpenRocket design:</Text>
       <Text className={styles.code}>uv run orviz.py MyRocket.ork --app --serve</Text>
-      <Button appearance="primary" icon={<FolderOpenRegular />} onClick={() => pickFile(fail)}>Open file…</Button>
+      <div style={{ display: "flex", gap: 8 }}>
+        <Button appearance="primary" icon={<FolderOpenRegular />} onClick={() => pickFile(fail)}>Open file…</Button>
+        <Button icon={<BeakerRegular />} onClick={() => loadFromUrl(SAMPLE_URL).catch(fail)}>Open sample flight</Button>
+      </div>
       {error && <MessageBar intent="error"><MessageBarBody>{error}</MessageBarBody></MessageBar>}
     </div>
   );

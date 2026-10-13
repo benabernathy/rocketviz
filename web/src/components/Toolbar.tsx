@@ -6,12 +6,13 @@ import {
 } from "@fluentui/react-components";
 import {
   FolderOpenRegular, LayerRegular, FullScreenMaximizeRegular, LocationRegular, DarkThemeRegular, GridRegular,
-  RocketRegular,
+  RocketRegular, InfoRegular,
 } from "@fluentui/react-icons";
 import { useStore, type Layers, type ThemeMode } from "../store";
 import { motorLabel } from "../flight";
 import { pickFile } from "../data";
 import { PANELS, resetLayout, togglePanel } from "./DockLayout";
+import { Diagnostics } from "./Diagnostics";
 
 const useStyles = makeStyles({
   bar: {
@@ -51,11 +52,17 @@ export function Toolbar() {
   const frame = useStore(s => s.frame);
   const resetPad = useStore(s => s.resetPad);
   const openPanels = useStore(s => s.openPanels);
+  const showFps = useStore(s => s.showFps);
+  const [diagOpen, setDiagOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const checked = { layers: LAYER_ITEMS.filter(([k]) => layers[k]).map(([k]) => k), theme: [theme], panels: openPanels };
+  const checked = {
+    layers: LAYER_ITEMS.filter(([k]) => layers[k]).map(([k]) => k), theme: [theme], panels: openPanels,
+    debug: showFps ? ["fps"] : [],
+  };
   const onCheck = (_: unknown, d: MenuCheckedValueChangeData) => {
     if (d.name === "theme") setTheme(d.checkedItems[0] as ThemeMode);
+    else if (d.name === "debug") useStore.setState({ showFps: d.checkedItems.includes("fps") });
     else if (d.name === "panels") Object.keys(PANELS).forEach(id => { if (d.checkedItems.includes(id) !== openPanels.includes(id)) togglePanel(id); });
     else LAYER_ITEMS.forEach(([k]) => { if (d.checkedItems.includes(k) !== layers[k]) setLayer(k, !layers[k]); });
   };
@@ -119,12 +126,16 @@ export function Toolbar() {
                   {Object.entries(PANELS).map(([id, p]) => <MenuItemCheckbox key={id} name="panels" value={id}>{p.title}</MenuItemCheckbox>)}
                 </MenuGroup>
                 <MenuItem icon={<GridRegular />} onClick={resetLayout}>Reset panel layout</MenuItem>
+                <MenuDivider />
+                <MenuItemCheckbox name="debug" value="fps">Show 3D frame rate</MenuItemCheckbox>
               </>}
+              <MenuItem icon={<InfoRegular />} onClick={() => setDiagOpen(true)}>Diagnostics…</MenuItem>
             </MenuList>
           </MenuPopover>
         </Menu>
       </FToolbar>
 
+      <Diagnostics open={diagOpen} onClose={() => setDiagOpen(false)} />
       {error && (
         <MessageBar intent="error" className={styles.error} onClick={() => setError(null)}>
           <MessageBarBody>{error}</MessageBarBody>

@@ -7,6 +7,7 @@ import { EmptyState } from "./components/EmptyState";
 import { useStore } from "./store";
 import { fluentTheme, useIsDark } from "./theme";
 import { loadFromUrl } from "./data";
+import { runSmokeIfRequested } from "./smoke";
 
 const useStyles = makeStyles({
   root: {
@@ -31,7 +32,9 @@ export default function App() {
   useEffect(() => {
     // `?data=<url>` picks a file; otherwise data.json next to the app (orviz.py --serve / vite dev provide it).
     const url = new URLSearchParams(location.search).get("data") ?? "data.json";
-    loadFromUrl(url).catch(() => { /* no bundled data: show the open-file screen */ }).finally(() => setLoading(false));
+    loadFromUrl(url)
+      .catch(() => { /* no bundled data: show the open-file screen */ })
+      .finally(() => { setLoading(false); runSmokeIfRequested(); });
   }, []);
 
   useEffect(() => {

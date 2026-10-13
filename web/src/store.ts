@@ -41,6 +41,8 @@ interface OrvizState {
   frameTick: number;
   /** Dock panels currently open (maintained by DockLayout). */
   openPanels: string[];
+  /** Cesium's frame-rate overlay, for performance testing. */
+  showFps: boolean;
 
   setData(data: FlightData, name: string): void;
   setSim(i: number): void;
@@ -76,6 +78,7 @@ export const useStore = create<OrvizState>()(subscribeWithSelector((set, get) =>
   theme: prefs.theme ?? "system",
   frameTick: 0,
   openPanels: [],
+  showFps: false,
 
   setData: (data, name) => set(s => ({ data, dataName: name, simIdx: 0, t: 0, playing: false, pad: { ...data.pad }, frameTick: s.frameTick + 1 })),
   setSim: i => set(s => ({ simIdx: i, t: 0, playing: false, frameTick: s.frameTick + 1 })),

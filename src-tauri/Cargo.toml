@@ -1,0 +1,19 @@
+[package]
+name = "orviz"
+version = "0.1.0"
+description = "Flight visualizer for hobby rocketry"
+authors = ["Benjamin Abernathy"]
+license = "Apache-2.0"
+edition = "2021"
+
+[lib]
+name = "orviz_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.2", features = [] }
+
+[dependencies]
+tauri = { version = "2.12.3", features = [] }
+tauri-plugin-dialog = "2.8.2"
+serde_json = "1"

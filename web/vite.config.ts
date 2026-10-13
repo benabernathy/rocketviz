@@ -13,7 +13,7 @@ function devData(): Plugin {
     name: "orviz-dev-data",
     configureServer(server) {
       server.middlewares.use("/data.json", (_req, res, next) => {
-        const root = path.resolve(__dirname, "..");
+        const root = path.resolve(import.meta.dirname, "..");
         const file = process.env.ORVIZ_DATA ?? fs.readdirSync(root)
           .filter(f => f.endsWith(".orviz.json"))
           .map(f => path.join(root, f))
@@ -36,5 +36,5 @@ export default defineConfig({
       targets: [{ src: `${cesium}/{Workers,Assets,Widgets,ThirdParty}/**/*`, dest: "cesium", rename: { stripBase: 4 } }],
     }),
   ],
-  build: { chunkSizeWarningLimit: 6000 },
+  build: { chunkSizeWarningLimit: 8000 },
 });

@@ -7,6 +7,7 @@ import {
   bearing, compass, enuToLonLat, keyEvents, lerp, phaseRanges, sigmaEllipse, PHASE_COLOR, SIGMA_COLOR, type Pad,
 } from "../flight";
 import type { Sim } from "../types";
+import { debugHooks } from "../smoke";
 
 const css = (c: string) => Cesium.Color.fromCssColorString(c);
 
@@ -125,6 +126,8 @@ export function Globe3D() {
       requestRenderMode: true, maximumRenderTimeChange: Infinity,
     });
     const scene = viewer.scene;
+    debugHooks.viewer = viewer;
+    const offImageryError = viewer.imageryLayers.get(0).imageryProvider.errorEvent.addEventListener(() => { debugHooks.imageryErrors++; });
     scene.globe.depthTestAgainstTerrain = false;
     viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
@@ -176,6 +179,12 @@ export function Globe3D() {
       useStore.subscribe(s => [s.data, s.simIdx, s.pad] as const, rebuild, { equalityFn: (a, b) => a.every((x, i) => x === b[i]) }),
       useStore.subscribe(s => s.layers, applyLayers),
       useStore.subscribe(s => [s.t, s.hoverT] as const, onTime, { equalityFn: (a, b) => a[0] === b[0] && a[1] === b[1] }),
+      // Frame-rate overlay for perf testing: render continuously so it reports what the GPU sustains, not idle.
+      useStore.subscribe(s => s.showFps, on => {
+        scene.debugShowFramesPerSecond = on;
+        scene.requestRenderMode = !on;
+        scene.requestRender();
+      }, { fireImmediately: true }),
       useStore.subscribe(s => s.frameTick, () => { const s = useStore.getState(); if (s.layers.follow) s.setLayer("follow", false); frame(); }),
     ];
 
@@ -196,6 +205,8 @@ export function Globe3D() {
       ro.disconnect();
       unsubs.forEach(u => u());
       dbl.destroy();
+      offImageryError();
+      if (debugHooks.viewer === viewer) delete debugHooks.viewer;
       viewer.destroy();
     };
   }, []);
