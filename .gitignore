@@ -18,3 +18,4 @@ OpenRocket-*.jar
 *.rocketviz.json
 !web/public/samples/*.rocketviz.json
 /target/
+!crates/core/tests/fixtures/*.kml
