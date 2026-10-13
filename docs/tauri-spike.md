@@ -59,5 +59,7 @@ The report is also saved to the temp folder as `rocketviz-smoke.txt`:
 | Platform | Machine | 3D fps | Imagery | Self-test | Notes |
 |---|---|---|---|---|---|
 | macOS 26 (arm64) | dev Mac, Apple GPU, 3440×1440 | 60 | ok | PASS | |
-| Windows x64 | | | | | |
-| Ubuntu 24.04 + NVIDIA | | | | | |
+| Windows x64 | user's workstation | | ok | PASS | No problems (2026-10-12, CI build 38328610926) |
+| Ubuntu 24.04 + NVIDIA | user's workstation, proprietary drivers | | ok | PASS | No problems with the default DMABUF workaround (2026-10-12, CI build 38328610926) |
+
+**Conclusion:** Tauri works on all three v1 platforms, and the Linux 3D concern (decision 6) didn't show up on the worst-case setup. We proceed on Tauri.
