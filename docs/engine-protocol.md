@@ -216,6 +216,8 @@ Simulates many cases, for Monte Carlo and wind sweeps.
 - **Failures:** a failed case doesn't fail the batch.
 - **Parallelism:** engines with `capabilities.parallel` run cases concurrently.
 - **Determinism:** a case's result depends only on the design, the config and its overrides (including `seed`). It must not depend on which thread or process ran it, the order, or what ran before. When `seed` is omitted, the engine uses a fixed default seed, so reopening a design reproduces the same flight.
+  - This is exact on one machine.
+  - Across CPU architectures (x86 vs ARM), floating-point math libraries can differ in the last bit. Results then agree physically but not bit for bit: the OpenRocket engine's landing points agree to within about 1 cm, and event times to within one time step.
 
 ### `shutdown` / `exit`
 - `shutdown` (request, result `null`): stop accepting work and release resources.
