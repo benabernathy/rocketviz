@@ -366,7 +366,8 @@ def main():
         base = orsim.run(sim, wind_speed=a.wind, wind_dir_deg=a.wind_from, lat=a.lat, lon=a.lon, seed=a.seed,
                          all_series=bool(a.app))
         c = base["conditions"]
-        pad = (c["lat"], c["lon"])
+        # Configs can have different launch sites; the file's pad is the first one's (each keeps its own in conditions).
+        pad = pad or (c["lat"], c["lon"])
         lls = georef(base)
         print(f"[{name}] apogee {base['summary']['max_alt']:.0f} m, lands "
               f"{math.hypot(*landing(base)):.0f} m {compass(bearing_deg(*landing(base)))}", file=sys.stderr)
@@ -393,7 +394,7 @@ def main():
             e, n = landing(r)
             sweep.append({"wind": float(w), "e": e, "n": n, "apogee": r["summary"]["max_alt"]})
 
-        folders.append(sim_folder(name, base, lls, t0, mc, sweep, pad, open_=(idx == pick[0])))
+        folders.append(sim_folder(name, base, lls, t0, mc, sweep, (c["lat"], c["lon"]), open_=(idx == pick[0])))
         js["sims"].append({
             "name": name, "conditions": c, "summary": base["summary"], "events": base["events"],
             "t": base["t"], "lat": [p[0] for p in lls], "lon": [p[1] for p in lls], "alt": base["alt"],

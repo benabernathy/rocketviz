@@ -80,8 +80,8 @@ export const useStore = create<RocketvizState>()(subscribeWithSelector((set, get
   openPanels: [],
   showFps: false,
 
-  setData: (data, name) => set(s => ({ data, dataName: name, simIdx: 0, t: 0, playing: false, pad: { ...data.pad }, frameTick: s.frameTick + 1 })),
-  setSim: i => set(s => ({ simIdx: i, t: 0, playing: false, frameTick: s.frameTick + 1 })),
+  setData: (data, name) => set(s => ({ data, dataName: name, simIdx: 0, t: 0, playing: false, pad: siteOf(data, 0), frameTick: s.frameTick + 1 })),
+  setSim: i => set(s => ({ simIdx: i, t: 0, playing: false, pad: s.data ? siteOf(s.data, i) : s.pad, frameTick: s.frameTick + 1 })),
   setT: t => {
     const sim = currentSim(get());
     set({ t: sim ? Math.max(0, Math.min(t, endTime(sim))) : 0 });
@@ -95,7 +95,7 @@ export const useStore = create<RocketvizState>()(subscribeWithSelector((set, get
   setSpeed: speed => set({ speed }),
   setHoverT: hoverT => set({ hoverT }),
   setPad: pad => set(s => ({ pad, frameTick: s.frameTick + 1 })),
-  resetPad: () => set(s => (s.data ? { pad: { ...s.data.pad }, frameTick: s.frameTick + 1 } : {})),
+  resetPad: () => set(s => (s.data ? { pad: siteOf(s.data, s.simIdx), frameTick: s.frameTick + 1 } : {})),
   setLayer: (k, on) => set(s => ({ layers: { ...s.layers, [k]: on } })),
   addPlot: key => set(s => ({ plots: [...s.plots, { id: `p${nextId++}`, series: [{ key, slot: 0 }] }] })),
   removePlot: id => set(s => ({ plots: s.plots.filter(p => p.id !== id) })),
@@ -116,6 +116,14 @@ export const useStore = create<RocketvizState>()(subscribeWithSelector((set, get
   setTheme: theme => set({ theme }),
   frame: () => set(s => ({ frameTick: s.frameTick + 1 })),
 })));
+
+/** A config's own launch site (configs in one design can differ); the file's pad if the config lacks one. */
+function siteOf(data: FlightData, i: number): Pad {
+  const c = data.sims[i]?.conditions;
+  return c && Number.isFinite(c.lat) && Number.isFinite(c.lon) && (c.lat !== 0 || c.lon !== 0)
+    ? { lat: c.lat, lon: c.lon }
+    : { ...data.pad };
+}
 
 export function currentSim(s: Pick<RocketvizState, "data" | "simIdx">): Sim | null {
   return s.data?.sims[s.simIdx] ?? null;

@@ -1,7 +1,9 @@
 //! rocketviz core: hosts simulation engines, runs Monte Carlo analyses, and turns trajectories into the data the
 //! app displays and exports.
 
+pub mod analysis;
 pub mod engine;
 pub mod error;
+pub mod montecarlo;
 
 pub use error::{Error, Result};
