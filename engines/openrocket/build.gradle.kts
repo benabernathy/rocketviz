@@ -75,5 +75,7 @@ tasks.register<Sync>("assembleEngine") {
 tasks.test {
     useJUnitPlatform()
     jvmArgs("-Djava.awt.headless=true", "-Xmx1g")
-    testLogging { events("passed", "failed", "skipped"); showStandardStreams = false }
+    providers.systemProperty("golden.strict").orNull?.let { systemProperty("golden.strict", it) }
+    // Show stderr so CI logs include the golden-parity differences per platform.
+    testLogging { events("passed", "failed", "skipped"); showStandardStreams = true; exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL }
 }
