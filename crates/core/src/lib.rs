@@ -4,6 +4,7 @@
 pub mod analysis;
 pub mod engine;
 pub mod error;
+pub mod export;
 pub mod montecarlo;
 
 pub use error::{Error, Result};

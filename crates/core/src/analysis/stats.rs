@@ -77,3 +77,20 @@ impl LandingStats {
             .collect()
     }
 }
+
+/// Percentile with linear interpolation between ranks (numpy's default), `p` in [0, 1], of sorted values.
+pub fn percentile_linear(sorted: &[f64], p: f64) -> f64 {
+    match sorted.len() {
+        0 => f64::NAN,
+        1 => sorted[0],
+        n => {
+            let rank = p.clamp(0.0, 1.0) * (n - 1) as f64;
+            let (lo, frac) = (rank.floor() as usize, rank.fract());
+            if lo + 1 < n {
+                sorted[lo] + (sorted[lo + 1] - sorted[lo]) * frac
+            } else {
+                sorted[n - 1]
+            }
+        }
+    }
+}

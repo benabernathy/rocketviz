@@ -17,3 +17,4 @@ futures-util = { version = "0.3.34", default-features = false, features = ["std"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
+roxmltree = "0.21.1"
