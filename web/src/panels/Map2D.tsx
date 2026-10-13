@@ -9,6 +9,7 @@ import { currentSim, useStore } from "../store";
 import { bearing, compass, enuToLonLat, lerp, phaseRanges, sigmaEllipse, PHASE_COLOR, SIGMA_COLOR, type Pad } from "../flight";
 import type { Sim } from "../types";
 import { debugHooks } from "../smoke";
+import { imagery } from "../imagery";
 
 // MapLibre looks for its worker next to its own module; once bundled that's wrong, so point it at the emitted asset.
 maplibregl.setWorkerUrl(new URL(maplibreWorker, document.baseURI).href);
@@ -17,20 +18,17 @@ type Props = Record<string, string | number | boolean>;
 const fc = (features: Feature<Geometry, Props>[]): FeatureCollection<Geometry, Props> => ({ type: "FeatureCollection", features });
 const feat = (geometry: Geometry, properties: Props = {}): Feature<Geometry, Props> => ({ type: "Feature", geometry, properties });
 
-const STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-  sources: {
-    imagery: {
-      type: "raster",
-      tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
-      tileSize: 256,
-      maxzoom: 19,
-      attribution: "Imagery © Esri, Maxar, Earthstar Geographics",
+function mapStyle(): maplibregl.StyleSpecification {
+  const tiles = imagery();
+  return {
+    version: 8,
+    glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+    sources: {
+      imagery: { type: "raster", tiles: [tiles.url], tileSize: 256, maxzoom: tiles.maxZoom, attribution: tiles.attribution },
     },
-  },
-  layers: [{ id: "imagery", type: "raster", source: "imagery" }],
-};
+    layers: [{ id: "imagery", type: "raster", source: "imagery" }],
+  };
+}
 
 /** Static overlays for one sim at one pad location. */
 function overlays(sim: Sim, pad: Pad) {
@@ -81,7 +79,7 @@ export function Map2D() {
     const { pad } = useStore.getState();
     const map = new maplibregl.Map({
       container: host.current!,
-      style: STYLE,
+      style: mapStyle(),
       center: [pad.lon, pad.lat],
       zoom: 15,
       doubleClickZoom: false,

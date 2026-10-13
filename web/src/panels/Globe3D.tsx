@@ -8,6 +8,7 @@ import {
 } from "../flight";
 import type { Sim } from "../types";
 import { debugHooks } from "../smoke";
+import { imagery } from "../imagery";
 
 const css = (c: string) => Cesium.Color.fromCssColorString(c);
 
@@ -114,10 +115,10 @@ export function Globe3D() {
   const host = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const tiles = imagery();
     const viewer = new Cesium.Viewer(host.current!, {
       baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
-        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        maximumLevel: 19, credit: "Imagery © Esri, Maxar, Earthstar Geographics",
+        url: tiles.url, maximumLevel: tiles.maxZoom, credit: tiles.attribution,
       })),
       terrainProvider: new Cesium.EllipsoidTerrainProvider(),
       baseLayerPicker: false, geocoder: false, timeline: false, animation: false, homeButton: false,

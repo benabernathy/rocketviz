@@ -6,5 +6,6 @@ pub mod engine;
 pub mod error;
 pub mod export;
 pub mod montecarlo;
+pub mod tiles;
 
 pub use error::{Error, Result};
