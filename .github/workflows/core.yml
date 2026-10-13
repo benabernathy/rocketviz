@@ -35,9 +35,9 @@ jobs:
           path: engines/openrocket/lib
           key: openrocket-24.12-4959b72f52f5f607
 
-      - name: Build the OpenRocket engine
+      - name: Build the OpenRocket engine and the bundled Java runtime
         working-directory: engines/openrocket
-        run: ./gradlew assembleEngine
+        run: ./gradlew bundle
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -53,4 +53,6 @@ jobs:
       - name: Test
         env:
           ROCKETVIZ_REQUIRE_ENGINE: "1"
+          # Engines run on the Java runtime the app bundles, not the full JDK.
+          JAVA_HOME: ${{ github.workspace }}/engines/openrocket/build/jre
         run: cargo test -p rocketviz-core

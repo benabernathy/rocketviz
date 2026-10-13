@@ -165,6 +165,12 @@ fn smoke_design() -> Option<serde_json::Value> {
     Some(serde_json::json!({ "design": design, "out_dir": out }))
 }
 
+/// True when the self-test should also check for, download and install an update (ROCKETVIZ_SMOKE_UPDATE=1).
+#[tauri::command]
+fn smoke_update() -> bool {
+    std::env::var("ROCKETVIZ_SMOKE_UPDATE").is_ok_and(|v| v == "1")
+}
+
 /// Prints the frontend's self-test report, saves it to the temp dir (Windows GUI builds have no console),
 /// and exits non-zero if the test failed.
 #[tauri::command]
@@ -210,6 +216,8 @@ pub fn run() {
 
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             let settings = SettingsFile::new(&app.path().app_config_dir()?);
             let saved = settings.load();
@@ -254,6 +262,7 @@ pub fn run() {
             set_imagery_key,
             smoke_enabled,
             smoke_design,
+            smoke_update,
             smoke_report,
         ])
         .build(tauri::generate_context!())

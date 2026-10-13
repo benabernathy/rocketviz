@@ -71,10 +71,10 @@ This app replaces the Python pipeline. It has the same workspace as the React ap
 - **File → Save flight as…** writes a `.rocketviz.json`. **Export KML** writes the Google Earth file.
 - **File → Settings…** chooses the map imagery (Esri or USGS) and stores an optional ArcGIS API key. The key is checked before it is saved.
 
-Simulation engines are separate programs; see `docs/engine-protocol.md`. Until the installers bundle OpenRocket and Java, build the engine once. This needs Java 21:
+Simulation engines are separate programs; see `docs/engine-protocol.md`. The installers bundle the OpenRocket engine and a trimmed Java runtime, so users don't need Java. To build, you need Java 21 once:
 ```
-cd engines/openrocket && ./gradlew assembleEngine
-npx --prefix web tauri dev
+cd engines/openrocket && ./gradlew bundle   # the engine folder and Java runtime the app bundles
+npx --prefix web tauri dev                  # or: tauri build (installers); see docs/releasing.md
 ```
 Environment variables:
 - `ROCKETVIZ_ENGINES`: extra engine folders (a path list).

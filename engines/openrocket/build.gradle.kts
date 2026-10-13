@@ -62,18 +62,67 @@ tasks.jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+// OpenRocket's JAR without its native libraries (JOGL, JNA, FlatLaf: desktop UI only). The engine is headless and never
+// loads them, and Apple's notarization rejects unsigned native code even inside a JAR. Same file name, so engine.json
+// doesn't change. Verified against OpenRocket's example designs: identical results with and without them.
+val headlessOpenRocketJar = tasks.register<Zip>("headlessOpenRocketJar") {
+    description = "OpenRocket's JAR minus native libraries, for bundling."
+    dependsOn(fetchOpenRocket)
+    from(zipTree(openRocketJar)) {
+        exclude("**/*.dylib", "**/*.jnilib", "**/*.so", "**/*.dll")
+    }
+    archiveFileName = "OpenRocket-$openRocketVersion.jar"
+    destinationDirectory = layout.buildDirectory.dir("headless")
+    isZip64 = true
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+
 // The installable engine folder the app bundles: build/engine/
 tasks.register<Sync>("assembleEngine") {
     description = "Assembles the engine folder (engine.json, engine.jar, OpenRocket JAR, licenses)."
-    dependsOn(fetchOpenRocket)
     from(tasks.jar)
-    from(openRocketJar)
+    from(headlessOpenRocketJar)
     from("engine.json", "LICENSE", "README.md")
     into(layout.buildDirectory.dir("engine"))
 }
 
+// The Java runtime the desktop app bundles: build/jre/ (about 47 MB), for the platform it's built on.
+// Modules from `jdeps --print-module-deps` on engine.jar + OpenRocket, plus java.scripting (simulation scripting
+// extensions) and jdk.zipfs. Checked by running every OpenRocket example design on it: identical to a full JDK.
+// No CDS archive: it adds 25 MB and saves ~0.02 s of the engine's ~1.4 s start (OpenRocket's own loading dominates).
+val runtimeModules = listOf(
+    "java.base", "java.compiler", "java.desktop", "java.naming", "java.prefs", "java.scripting", "java.sql",
+    "java.xml.crypto", "jdk.management", "jdk.unsupported", "jdk.zipfs",
+)
+tasks.register<Exec>("jlinkRuntime") {
+    description = "Builds the trimmed Java runtime (jlink) the desktop app bundles."
+    val jdk = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(21) }.map { it.metadata.installationPath }
+    val output = layout.buildDirectory.dir("jre")
+    inputs.property("modules", runtimeModules)
+    outputs.dir(output)
+    doFirst { delete(output) }
+    executable = jdk.get().file("bin/jlink${if (System.getProperty("os.name").startsWith("Windows")) ".exe" else ""}").asFile.path
+    args(
+        "--add-modules", runtimeModules.joinToString(","),
+        "--strip-debug", "--no-man-pages", "--no-header-files", "--compress=zip-6",
+        "--output", output.get().asFile.path,
+    )
+    // jlink writes some legal notices read-only, which breaks re-copying the runtime into the app on the next build.
+    doLast { output.get().asFile.walk().forEach { it.setWritable(true, true) } }
+}
+
+// Everything the desktop app bundles: build/engine/ and build/jre/.
+tasks.register("bundle") {
+    description = "Builds the engine folder and the Java runtime for the desktop app."
+    dependsOn("assembleEngine", "jlinkRuntime")
+}
+
 tasks.test {
     useJUnitPlatform()
+    // BundleParityTest checks the bundle when it has been built (`./gradlew bundle test`).
+    mustRunAfter("bundle")
+    systemProperty("bundle.build", layout.buildDirectory.get().asFile.path)
     jvmArgs("-Djava.awt.headless=true", "-Xmx1g")
     providers.systemProperty("golden.strict").orNull?.let { systemProperty("golden.strict", it) }
     // Show stderr so CI logs include the golden-parity differences per platform.

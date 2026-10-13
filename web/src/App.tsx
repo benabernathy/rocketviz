@@ -12,7 +12,8 @@ import { useStore } from "./store";
 import { fluentTheme, useIsDark } from "./theme";
 import { loadFromUrl, pickFile, saveFlightAs } from "./data";
 import { isTauri } from "@tauri-apps/api/core";
-import { runSmokeIfRequested } from "./smoke";
+import { runSmokeIfRequested, smokeRequested } from "./smoke";
+import { checkForUpdates } from "./updates";
 
 const useStyles = makeStyles({
   root: {
@@ -40,7 +41,12 @@ export default function App() {
     const url = new URLSearchParams(location.search).get("data") ?? "data.json";
     loadFromUrl(url)
       .catch(() => { /* no bundled data: show the open-file screen */ })
-      .finally(() => { setLoading(false); runSmokeIfRequested(); });
+      .finally(() => {
+        setLoading(false);
+        runSmokeIfRequested();
+        // Release builds look for a newer version once at startup (not during self-tests).
+        if (isTauri() && import.meta.env.PROD) smokeRequested().then(smoke => { if (!smoke) checkForUpdates(false); });
+      });
   }, []);
 
   useEffect(() => {

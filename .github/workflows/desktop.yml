@@ -1,5 +1,5 @@
-# Builds unsigned desktop installers for macOS (arm64), Windows (x64) and Linux (x64).
-# Signing and notarization steps get added here once the secrets exist (see docs/architecture-decisions.md, §5).
+# Builds unsigned desktop installers for macOS (arm64), Windows (x64) and Linux (x64) on every push, with the
+# OpenRocket engine and Java runtime bundled. Signed release builds come from release.yml.
 name: desktop
 
 on:
@@ -29,6 +29,24 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libxdo-dev libssl-dev
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Cache OpenRocket JAR
+        uses: actions/cache@v6
+        with:
+          path: engines/openrocket/lib
+          key: openrocket-24.12-4959b72f52f5f607
+
+      - name: Build the engine and Java runtime to bundle
+        working-directory: engines/openrocket
+        shell: bash
+        run: ./gradlew bundle
 
       - uses: actions/setup-node@v7
         with:

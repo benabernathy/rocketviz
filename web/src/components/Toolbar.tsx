@@ -7,11 +7,13 @@ import {
 import {
   FolderOpenRegular, LayerRegular, FullScreenMaximizeRegular, LocationRegular, DarkThemeRegular, GridRegular,
   RocketRegular, InfoRegular, DocumentRegular, SaveRegular, GlobeArrowUpRegular, SettingsRegular, PlayRegular,
+  ArrowSyncRegular,
 } from "@fluentui/react-icons";
 import { isTauri } from "@tauri-apps/api/core";
 import { useStore, type Layers, type ThemeMode } from "../store";
 import { motorLabel } from "../flight";
 import { exportKml, pickFile, saveFlightAs } from "../data";
+import { checkForUpdates } from "../updates";
 import { PANELS, resetLayout, togglePanel } from "./DockLayout";
 import { Diagnostics } from "./Diagnostics";
 
@@ -111,6 +113,7 @@ export function Toolbar() {
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem icon={<SettingsRegular />} onClick={() => useStore.setState({ dialog: "settings" })}>Settings…</MenuItem>
+                <MenuItem icon={<ArrowSyncRegular />} disabled={running} onClick={() => checkForUpdates(true)}>Check for updates…</MenuItem>
               </>}
             </MenuList>
           </MenuPopover>

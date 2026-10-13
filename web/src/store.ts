@@ -11,7 +11,12 @@ export interface PlotSeries { key: string; slot: number }
 export interface PlotRow { id: string; series: PlotSeries[] }
 export interface Layers { mc: boolean; ellipses: boolean; sweep: boolean; follow: boolean }
 export type DialogId = "simulate" | "settings";
-export interface Notice { intent: "error" | "warning" | "success" | "info"; text: string }
+export interface Notice {
+  intent: "error" | "warning" | "success" | "info";
+  text: string;
+  /** A button on the message, e.g. "Install and restart". */
+  action?: { label: string; run: () => void };
+}
 
 /** A running analysis, for the progress bar. */
 export interface RunProgress {

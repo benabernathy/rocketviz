@@ -43,6 +43,11 @@ web/                  React UI (data layer moves from fetch() to Tauri invoke + 
 - **v1 ships the stock OpenRocket 24.12 JAR:** 83 MB compressed, 182 MB unpacked. Only about 8 MB of that is OpenRocket itself.
 - **Trimming comes later,** and only after a parity test suite exists. The suite runs OpenRocket's example `.ork` files plus real designs through both the stock and trimmed JARs, and the results must match.
 - **Runtime:** Eclipse Temurin 21 LTS, cut down with jlink (`--strip-debug --no-man-pages --no-header-files`, includes `java.desktop`).
+- **Update (phase 5):**
+  - The runtime has 11 modules and is 47 MB. It has no CDS archive: that would add 25 MB and save about 0.02 s of a 1.4 s engine start.
+  - The bundled OpenRocket JAR has its native libraries removed (JOGL, JNA, FlatLaf), which saves 2 MB. This is required because Apple's notarization rejects unsigned native code even inside a JAR, and the headless engine never loads them.
+  - The parity suite now exists: `BundleParityTest` runs OpenRocket's 17 example designs plus Fizz (62 configurations), on the shipped runtime and JAR and on a full JDK with the stock JAR. The results must be identical, and CI checks this on all three platforms.
+  - Removing more from the JAR is still a later step.
 
 ### 5. Code signing and updates
 - **CI:** has signing and notarization steps from day one, gated on secrets being present.

@@ -10,7 +10,10 @@ Needs Java 21. Gradle downloads one if it's missing.
 ```
 ./gradlew test             # golden parity, protocol, batch and process tests
 ./gradlew assembleEngine   # build/engine/: engine.json, engine.jar, OpenRocket JAR, LICENSE
+./gradlew bundle           # build/engine/ plus build/jre/, the trimmed Java runtime the desktop app ships
+./gradlew bundle test      # also checks the bundle against a full JDK (BundleParityTest)
 ```
+The bundled OpenRocket JAR has its native libraries removed. They belong to the desktop UI (JOGL, JNA, FlatLaf), which the headless engine never loads, and Apple's notarization rejects unsigned native code even inside a JAR. `BundleParityTest` checks that OpenRocket's example designs simulate identically with and without them.
 The first build downloads `OpenRocket-24.12.jar` into `lib/` and verifies its SHA-256.
 
 ## Try it by hand

@@ -13,7 +13,11 @@ Distributions of rocketviz include:
 
 - OpenRocket 24.12 (https://openrocket.info), GPL-3.0-or-later.
   Source: https://github.com/openrocket/openrocket/tree/release-24.12
+  Modified: the bundled OpenRocket-24.12.jar has the native libraries of its
+  desktop user interface removed (JOGL, JNA, FlatLaf; *.dylib, *.jnilib, *.so,
+  *.dll). Nothing else is changed. See engines/openrocket/build.gradle.kts.
 - The rocketviz OpenRocket engine bridge (engines/openrocket/), GPL-3.0-or-later.
   Source: https://github.com/benabernathy/rocketviz/tree/main/engines/openrocket
-- A Java runtime built from Eclipse Temurin (OpenJDK), GPL-2.0 with the
-  Classpath Exception. Source: https://adoptium.net
+- A Java runtime built with jlink from Eclipse Temurin 21 (OpenJDK), GPL-2.0
+  with the Classpath Exception. Its license notices are in the runtime's
+  legal/ folder. Source: https://adoptium.net

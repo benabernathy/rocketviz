@@ -1,4 +1,5 @@
-# OpenRocket engine: golden parity, protocol, batch and process tests on every platform the app ships on.
+# OpenRocket engine: golden parity, protocol, batch and process tests on every platform the app ships on, plus the
+# bundle as the app ships it (trimmed Java runtime, headless OpenRocket JAR) against a full JDK.
 name: engine-openrocket
 
 on:
@@ -36,8 +37,8 @@ jobs:
           path: engines/openrocket/lib
           key: openrocket-24.12-4959b72f52f5f607
 
-      - name: Test and assemble
-        run: ./gradlew test assembleEngine
+      - name: Build the bundle and test
+        run: ./gradlew bundle test
 
       - uses: actions/upload-artifact@v7
         if: always()

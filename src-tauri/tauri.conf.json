@@ -42,6 +42,19 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "resources": {
+      "../engines/openrocket/build/engine/": "engines/openrocket/",
+      "../engines/openrocket/build/jre/": "jre/"
+    },
+    "createUpdaterArtifacts": false
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEzOEFDOEExODI4N0U0MzkKUldRNTVJZUNvY2lLRTB1SHdIQVBXazRCR1o4dEZjOWF6TDdwYnVpMmFhVVdxU1ExSzRiU1lWNTQK",
+      "endpoints": [
+        "https://github.com/benabernathy/rocketviz/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

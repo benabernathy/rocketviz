@@ -69,6 +69,8 @@ async function simulationChecks(lines: string[], checks: [string, boolean][]) {
   checks.push(["Design opened (engine started)", !!design && design.configs.length > 0]);
   if (!design) return;
   lines.push(`Opened with ${design.engine.name} ${design.engine.version} in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${design.configs.length} configs`);
+  const report = await desktop.engineReport();
+  lines.push(`Engine: ${design.engine.dir}`, `Java: ${report.java ?? report.java_error}`);
   useStore.setState({ dialog: null });
 
   // Live updates: count data changes while the analysis runs, and when the first flight appeared.
@@ -111,13 +113,29 @@ async function simulationChecks(lines: string[], checks: [string, boolean][]) {
   checks.push(["KML exported", true]);
 }
 
+/** With ROCKETVIZ_SMOKE_UPDATE=1: find an update at the configured endpoint, download it, verify and install it. */
+async function updateChecks(lines: string[], checks: [string, boolean][]) {
+  if (!(await invoke<boolean>("smoke_update"))) return;
+  const { check } = await import("@tauri-apps/plugin-updater");
+  const update = await check();
+  lines.push("", update ? `Update found: ${update.currentVersion} -> ${update.version}` : "No update found");
+  checks.push(["Update found", !!update]);
+  if (!update) return;
+  let bytes = 0;
+  await update.downloadAndInstall(e => { if (e.event === "Progress") bytes += e.data.chunkLength; });
+  lines.push(`Downloaded ${(bytes / 1e6).toFixed(1)} MB, signature verified and installed (restart to run it)`);
+  checks.push(["Update downloaded, verified and installed", bytes > 0]);
+}
+
 let started = false;
+
+export const smokeRequested = () => invoke<boolean>("smoke_enabled").catch(() => false);
 
 export async function runSmokeIfRequested() {
   // Once per page, even when React StrictMode runs the startup effect twice (development).
   if (started) return;
   started = true;
-  if (!isTauri() || !(await invoke<boolean>("smoke_enabled").catch(() => false))) return;
+  if (!isTauri() || !(await smokeRequested())) return;
   const lines: string[] = ["=== rocketviz smoke test ==="];
   const checks: [string, boolean][] = [];
   try {
@@ -152,6 +170,7 @@ export async function runSmokeIfRequested() {
     checks.push(["3D renders at least 20 fps", fps.globe >= 20]);
     checks.push(["Playback advanced", useStore.getState().t > 5]);
     await simulationChecks(lines, checks);
+    await updateChecks(lines, checks);
   } catch (e) {
     checks.push([`Exception: ${e instanceof Error ? e.message : String(e)}`, false]);
   }

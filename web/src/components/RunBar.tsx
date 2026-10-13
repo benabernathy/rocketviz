@@ -63,7 +63,9 @@ export function RunBar() {
         <MessageBarBody style={{ whiteSpace: "pre-wrap" }}>{notice.text}</MessageBarBody>
         <MessageBarActions containerAction={
           <Button appearance="transparent" aria-label="Dismiss" icon={<DismissRegular />} onClick={() => useStore.setState({ notice: null })} />
-        } />
+        }>
+          {notice.action && <Button size="small" appearance="primary" onClick={notice.action.run}>{notice.action.label}</Button>}
+        </MessageBarActions>
       </MessageBar>
     );
   }
