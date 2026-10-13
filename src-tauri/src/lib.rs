@@ -32,11 +32,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![
-            read_flight,
-            smoke_enabled,
-            smoke_report
-        ])
+        .invoke_handler(tauri::generate_handler![read_flight, smoke_enabled, smoke_report])
         .run(tauri::generate_context!())
         .expect("error while running rocketviz");
 }

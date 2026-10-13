@@ -17,3 +17,4 @@ OpenRocket-*.jar
 *_globe.html
 *.rocketviz.json
 !web/public/samples/*.rocketviz.json
+/target/

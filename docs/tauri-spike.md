@@ -28,7 +28,7 @@ npx --prefix web tauri build
   sudo apt install libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libxdo-dev libssl-dev build-essential
   ```
 
-Output goes to `src-tauri/target/release/bundle/`.
+Output goes to `target/release/bundle/`.
 
 **Development** (hot reload): `npx --prefix web tauri dev`
 
@@ -38,9 +38,9 @@ This opens a window, loads the sample flight, waits for imagery, plays the fligh
 
 | Platform | Command |
 |---|---|
-| macOS | `ROCKETVIZ_SMOKE=1 /Applications/rocketviz.app/Contents/MacOS/rocketviz` (or the built `src-tauri/target/release/bundle/macos/rocketviz.app/...`) |
-| Windows (PowerShell) | `$env:ROCKETVIZ_SMOKE=1; & "C:\Program Files\rocketviz\rocketviz.exe"` (or `src-tauri\target\release\rocketviz.exe`). Read the report from the temp file (below). |
-| Linux | `ROCKETVIZ_SMOKE=1 ./rocketviz_0.1.0_amd64.AppImage` (or `src-tauri/target/release/rocketviz`) |
+| macOS | `ROCKETVIZ_SMOKE=1 /Applications/rocketviz.app/Contents/MacOS/rocketviz` (or the built `target/release/bundle/macos/rocketviz.app/...`) |
+| Windows (PowerShell) | `$env:ROCKETVIZ_SMOKE=1; & "C:\Program Files\rocketviz\rocketviz.exe"` (or `target\release\rocketviz.exe`). Read the report from the temp file (below). |
+| Linux | `ROCKETVIZ_SMOKE=1 ./rocketviz_0.1.0_amd64.AppImage` (or `target/release/rocketviz`) |
 
 The report is also saved to the temp folder as `rocketviz-smoke.txt`:
 - macOS and Linux: `$TMPDIR` or `/tmp`

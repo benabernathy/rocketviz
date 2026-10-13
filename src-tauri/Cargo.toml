@@ -1,10 +1,10 @@
 [package]
 name = "rocketviz"
-version = "0.1.0"
 description = "Flight visualizer for hobby rocketry"
-authors = ["Benjamin Abernathy"]
-license = "Apache-2.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
 
 [lib]
 name = "rocketviz_lib"
@@ -16,4 +16,5 @@ tauri-build = { version = "2.7.2", features = [] }
 [dependencies]
 tauri = { version = "2.12.3", features = [] }
 tauri-plugin-dialog = "2.8.2"
-serde_json = "1"
+serde_json.workspace = true
+rocketviz-core = { path = "../crates/core" }
