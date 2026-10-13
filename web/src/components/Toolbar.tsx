@@ -2,15 +2,16 @@ import { useState } from "react";
 import {
   Menu, MenuItemCheckbox, MenuItemRadio, MenuList, MenuPopover, MenuTrigger, MenuDivider, MenuGroup, MenuGroupHeader,
   MenuItem, Tab, TabList, Text, Toolbar as FToolbar, ToolbarButton, ToolbarDivider, Tooltip, makeStyles, tokens,
-  MessageBar, MessageBarBody, type MenuCheckedValueChangeData,
+  type MenuCheckedValueChangeData,
 } from "@fluentui/react-components";
 import {
   FolderOpenRegular, LayerRegular, FullScreenMaximizeRegular, LocationRegular, DarkThemeRegular, GridRegular,
-  RocketRegular, InfoRegular,
+  RocketRegular, InfoRegular, DocumentRegular, SaveRegular, GlobeArrowUpRegular, SettingsRegular, PlayRegular,
 } from "@fluentui/react-icons";
+import { isTauri } from "@tauri-apps/api/core";
 import { useStore, type Layers, type ThemeMode } from "../store";
 import { motorLabel } from "../flight";
-import { pickFile } from "../data";
+import { exportKml, pickFile, saveFlightAs } from "../data";
 import { PANELS, resetLayout, togglePanel } from "./DockLayout";
 import { Diagnostics } from "./Diagnostics";
 
@@ -29,8 +30,13 @@ const useStyles = makeStyles({
   logo: { color: tokens.colorBrandForeground1, fontSize: "20px" },
   sub: { color: tokens.colorNeutralForeground3 },
   spacer: { flex: 1 },
-  error: { position: "absolute", top: "52px", right: "12px", zIndex: 10, maxWidth: "480px" },
 });
+
+const MOD = /Mac/.test(navigator.platform) ? "⌘" : "Ctrl+";
+
+/** Reports a failed file action under the toolbar. */
+export const fail = (what: string) => (e: unknown) =>
+  useStore.setState({ notice: { intent: "error", text: `${what}: ${e instanceof Error ? e.message : String(e)}` } });
 
 const LAYER_ITEMS: [keyof Layers, string][] = [
   ["mc", "Monte Carlo landings"],
@@ -54,7 +60,10 @@ export function Toolbar() {
   const openPanels = useStore(s => s.openPanels);
   const showFps = useStore(s => s.showFps);
   const [diagOpen, setDiagOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const design = useStore(s => s.design);
+  const running = useStore(s => s.run != null || s.busy != null);
+  const dirty = useStore(s => s.dirty);
+  const desktopApp = isTauri();
 
   const checked = {
     layers: LAYER_ITEMS.filter(([k]) => layers[k]).map(([k]) => k), theme: [theme], panels: openPanels,
@@ -72,7 +81,7 @@ export function Toolbar() {
       <div className={styles.brand}>
         <RocketRegular className={styles.logo} />
         <Text weight="semibold" size={400}>{data?.rocket ?? "rocketviz"}</Text>
-        {data && <Text size={200} className={styles.sub}>{dataName}</Text>}
+        {data && <Text size={200} className={styles.sub}>{dataName}{dirty ? " · not saved" : ""}</Text>}
       </div>
 
       {data && data.sims.length > 1 && (
@@ -84,9 +93,35 @@ export function Toolbar() {
       <div className={styles.spacer} />
 
       <FToolbar size="small" aria-label="View">
-        <Tooltip content="Open a .rocketviz.json flight file" relationship="description">
-          <ToolbarButton icon={<FolderOpenRegular />} onClick={() => pickFile(e => setError(e.message))}>Open</ToolbarButton>
-        </Tooltip>
+        <Menu>
+          <MenuTrigger disableButtonEnhancement>
+            <ToolbarButton icon={<DocumentRegular />}>File</ToolbarButton>
+          </MenuTrigger>
+          <MenuPopover>
+            <MenuList>
+              <MenuItem icon={<FolderOpenRegular />} secondaryContent={`${MOD}O`} disabled={running} onClick={() => pickFile(fail("Couldn't open"))}>
+                {desktopApp ? "Open design or flight…" : "Open flight…"}
+              </MenuItem>
+              {desktopApp && <>
+                <MenuItem icon={<SaveRegular />} secondaryContent={`${MOD}S`} disabled={!data || running} onClick={() => saveFlightAs().catch(fail("Couldn't save"))}>
+                  Save flight as…
+                </MenuItem>
+                <MenuItem icon={<GlobeArrowUpRegular />} disabled={!data || running} onClick={() => exportKml().catch(fail("Couldn't export"))}>
+                  Export KML for Google Earth…
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem icon={<SettingsRegular />} onClick={() => useStore.setState({ dialog: "settings" })}>Settings…</MenuItem>
+              </>}
+            </MenuList>
+          </MenuPopover>
+        </Menu>
+        {design && (
+          <Tooltip content={`Simulate ${design.name} with ${design.engine.name}: conditions, Monte Carlo, wind sweep`} relationship="description">
+            <ToolbarButton appearance="primary" icon={<PlayRegular />} disabled={running} onClick={() => useStore.setState({ dialog: "simulate" })}>
+              Simulate
+            </ToolbarButton>
+          </Tooltip>
+        )}
         {data && <>
           <ToolbarDivider />
           <Menu checkedValues={checked} onCheckedValueChange={onCheck}>
@@ -136,11 +171,6 @@ export function Toolbar() {
       </FToolbar>
 
       <Diagnostics open={diagOpen} onClose={() => setDiagOpen(false)} />
-      {error && (
-        <MessageBar intent="error" className={styles.error} onClick={() => setError(null)}>
-          <MessageBarBody>{error}</MessageBarBody>
-        </MessageBar>
-      )}
     </header>
   );
 }

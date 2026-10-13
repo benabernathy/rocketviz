@@ -25,6 +25,9 @@ const useStyles = makeStyles({
   ring: { display: "inline-block", width: "12px", height: "12px", borderRadius: "50%", border: "2px solid", marginRight: "8px", verticalAlign: "middle", boxSizing: "border-box" },
 });
 
+/** A number with `digits` decimals, or a dash when the simulation didn't produce it. */
+const num = (x: number, digits = 0) => (Number.isFinite(x) ? x.toFixed(digits) : "—");
+
 export function FlightInfo() {
   const styles = useStyles();
   const sim = useSim();
@@ -42,11 +45,11 @@ export function FlightInfo() {
   const rows: [string, string, boolean?][] = [
     ["Walk to rocket", `${Math.round(dist)} m · ${feet(dist)} ft`, true],
     ["Direction", `${Math.round(brg)}° ${compass(brg)}`],
-    ["Apogee", `${Math.round(m.max_alt)} m · ${feet(m.max_alt)} ft`],
-    ["Max speed", `${m.max_v.toFixed(1)} m/s`],
-    ["Flight time", `${m.flight_t.toFixed(1)} s`],
-    ["Landing speed", `${m.ground_v.toFixed(1)} m/s`],
-    ["Off-rod speed", `${m.rod_v.toFixed(1)} m/s`],
+    ["Apogee", Number.isFinite(m.max_alt) ? `${Math.round(m.max_alt)} m · ${feet(m.max_alt)} ft` : "—"],
+    ["Max speed", `${num(m.max_v, 1)} m/s`],
+    ["Flight time", `${num(m.flight_t, 1)} s`],
+    ["Landing speed", `${num(m.ground_v, 1)} m/s`],
+    ["Off-rod speed", `${num(m.rod_v, 1)} m/s`],
   ];
   const mcRows: [string, string][] = [
     ["Runs", String(d.length)],

@@ -59,6 +59,28 @@ For development, run `cd web && npm run dev`. It serves the newest `*.rocketviz.
 
 The single-file viewer (`--html`) remains available.
 
+## Desktop app (Rust + Tauri, in development)
+This app replaces the Python pipeline. It has the same workspace as the React app, plus simulation:
+- **File → Open** takes an OpenRocket design (`.ork`) or a saved flight (`.rocketviz.json`).
+- **Simulate** shows each configuration in the design. You can:
+  - change the launch conditions (a blank field keeps the design's value)
+  - set the Monte Carlo runs, seed, wind sweep and time step
+  - customize the dispersions
+- While the analysis runs, the nominal flight appears first, and the Monte Carlo landings fill in on both maps.
+- **Cancel** stops the run and restores the previous flight.
+- **File → Save flight as…** writes a `.rocketviz.json`. **Export KML** writes the Google Earth file.
+- **File → Settings…** chooses the map imagery (Esri or USGS) and stores an optional ArcGIS API key. The key is checked before it is saved.
+
+Simulation engines are separate programs; see `docs/engine-protocol.md`. Until the installers bundle OpenRocket and Java, build the engine once. This needs Java 21:
+```
+cd engines/openrocket && ./gradlew assembleEngine
+npx --prefix web tauri dev
+```
+Environment variables:
+- `ROCKETVIZ_ENGINES`: extra engine folders (a path list).
+- `JAVA_HOME`: the Java to run engines with.
+- `ROCKETVIZ_ESRI_KEY`: an ArcGIS key for this run only, without saving it.
+
 ## Notes
 - **Wind direction is the direction the wind blows from**, as in OpenRocket. With 90° (east wind), Fizz drifts west.
 - Heights are shown above ground level at the pad. Terrain isn't modeled yet. OpenRocket's *site altitude* only affects air density.

@@ -42,6 +42,14 @@ This opens a window, loads the sample flight, waits for imagery, plays the fligh
 | Windows (PowerShell) | `$env:ROCKETVIZ_SMOKE=1; & "C:\Program Files\rocketviz\rocketviz.exe"` (or `target\release\rocketviz.exe`). Read the report from the temp file (below). |
 | Linux | `ROCKETVIZ_SMOKE=1 ./rocketviz_0.1.0_amd64.AppImage` (or `target/release/rocketviz`) |
 
+To also test simulation, set `ROCKETVIZ_SMOKE_DESIGN` to an `.ork` file, for example `ROCKETVIZ_SMOKE_DESIGN=$PWD/Fizz.ork`. The test then:
+1. Opens the design, which starts the engine.
+2. Runs 40 Monte Carlo cases plus the wind sweep for every configuration, and checks that results streamed in while it ran.
+3. Cancels a long run and checks that the previous flight comes back.
+4. Saves the flight, reads it back, and exports KML to `rocketviz-smoke/` in the temp folder.
+
+This needs the OpenRocket engine, built or bundled, and Java.
+
 The report is also saved to the temp folder as `rocketviz-smoke.txt`:
 - macOS and Linux: `$TMPDIR` or `/tmp`
 - Windows: `%TEMP%`. Release builds there don't attach a console, so read the report from this file.

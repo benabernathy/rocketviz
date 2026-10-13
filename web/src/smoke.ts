@@ -3,7 +3,9 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { Viewer } from "cesium";
 import type { Map as MapLibreMap } from "maplibre-gl";
-import { SAMPLE_URL, loadFromUrl } from "./data";
+import { SAMPLE_URL, loadFromUrl, openPath } from "./data";
+import { desktop } from "./desktop";
+import { simulate } from "./analysis";
 import { useStore } from "./store";
 import { collectDiagnostics } from "./components/Diagnostics";
 
@@ -12,7 +14,12 @@ export const debugHooks: { viewer?: Viewer; map?: MapLibreMap; imageryErrors: nu
 
 // Errors are recorded from startup (capped) so the self-test can report anything that went wrong while loading.
 const errors: string[] = [];
-const record = (msg: string) => { if (errors.length < 100) errors.push(msg.slice(0, 300)); };
+// Development builds only: React StrictMode mounts twice, and Fluent's keyboard tracker (keyborg) complains about the
+// second dispose. The check that logs it is compiled out of production builds.
+const DEV_NOISE = import.meta.env.DEV ? [/^console\.error: Keyborg instance \w+ is being disposed incorrectly/] : [];
+const record = (msg: string) => {
+  if (errors.length < 100 && !DEV_NOISE.some(re => re.test(msg))) errors.push(msg.slice(0, 300));
+};
 addEventListener("error", e => record(`error: ${e.message}`));
 addEventListener("unhandledrejection", e => record(`rejection: ${String(e.reason)}`));
 const consoleError = console.error.bind(console);
@@ -49,7 +56,67 @@ async function measure(ms: number) {
   return { globe: globe / s, map2d: map2d / s, raf: raf / s };
 }
 
+/** With ROCKETVIZ_SMOKE_DESIGN: open the design, simulate it while counting live updates, cancel a run, and save. */
+async function simulationChecks(lines: string[], checks: [string, boolean][]) {
+  const smoke = await desktop.smokeDesign();
+  if (!smoke) return;
+  const sep = smoke.out_dir.includes("\\") ? "\\" : "/";
+  lines.push("", `Simulating ${smoke.design}`);
+
+  let t0 = performance.now();
+  await openPath(smoke.design);
+  const design = useStore.getState().design;
+  checks.push(["Design opened (engine started)", !!design && design.configs.length > 0]);
+  if (!design) return;
+  lines.push(`Opened with ${design.engine.name} ${design.engine.version} in ${((performance.now() - t0) / 1000).toFixed(1)} s: ${design.configs.length} configs`);
+  useStore.setState({ dialog: null });
+
+  // Live updates: count data changes while the analysis runs, and when the first flight appeared.
+  let updates = 0, firstAt: number | null = null;
+  const off = useStore.subscribe(s => s.data, d => {
+    if (!useStore.getState().run) return;
+    updates++;
+    if (firstAt == null && d) firstAt = performance.now();
+  });
+  const runs = 40, sweep = 4;
+  const settings = { overrides: {}, seed: 42, mc_runs: runs, dispersions: null, mc_time_step: 0.05, sweep_max: sweep };
+  t0 = performance.now();
+  const outcome = await simulate(design, design.configs.map(c => c.id), settings);
+  const total = (performance.now() - t0) / 1000;
+  off();
+  const data = useStore.getState().data!;
+  lines.push(`Analysis (${design.configs.length} configs × ${runs} Monte Carlo + ${sweep + 1} sweep) in ${total.toFixed(1)} s; ` +
+    `first flight shown after ${firstAt == null ? "never" : ((firstAt - t0) / 1000).toFixed(1)} s; ${updates} live updates`);
+  checks.push(["Analysis finished", outcome === "done"]);
+  checks.push(["Every config simulated", data.sims.length === design.configs.length]);
+  checks.push(["All Monte Carlo and sweep landings present", data.sims.every(s => s.mc.length === runs && s.sweep.length === sweep + 1)]);
+  checks.push(["Results streamed while running", firstAt != null && firstAt - t0 < total * 1000 * 0.8 && updates >= 3]);
+  checks.push(["Flight marked unsaved", useStore.getState().dirty]);
+
+  // Cancel: the result just computed comes back.
+  const before = useStore.getState().data;
+  const cancelOnFirstLanding = useStore.subscribe(s => s.run?.done ?? 0, done => { if (done > 0) desktop.cancelAnalysis(); });
+  t0 = performance.now();
+  const cancelled = await simulate(design, [design.configs[0].id], { ...settings, mc_runs: 2000, seed: 7 });
+  cancelOnFirstLanding();
+  lines.push(`Cancel took effect after ${((performance.now() - t0) / 1000).toFixed(1)} s`);
+  checks.push(["Cancel stops the run and restores the previous flight", cancelled === "cancelled" && useStore.getState().data === before]);
+
+  // Save and re-open; export KML.
+  const saved = `${smoke.out_dir}${sep}smoke.rocketviz.json`;
+  await desktop.saveFlight(saved);
+  const reread = JSON.parse(await desktop.readFlight(saved));
+  checks.push(["Saved flight reads back", reread.sims?.length === data.sims.length && reread.sims[0].mc.length === runs]);
+  await desktop.exportKml(`${smoke.out_dir}${sep}smoke.kml`);
+  checks.push(["KML exported", true]);
+}
+
+let started = false;
+
 export async function runSmokeIfRequested() {
+  // Once per page, even when React StrictMode runs the startup effect twice (development).
+  if (started) return;
+  started = true;
   if (!isTauri() || !(await invoke<boolean>("smoke_enabled").catch(() => false))) return;
   const lines: string[] = ["=== rocketviz smoke test ==="];
   const checks: [string, boolean][] = [];
@@ -84,6 +151,7 @@ export async function runSmokeIfRequested() {
     lines.push(`Frame rate during playback: 3D ${fps.globe.toFixed(0)} fps · 2D map ${fps.map2d.toFixed(0)} fps · page ${fps.raf.toFixed(0)} fps`);
     checks.push(["3D renders at least 20 fps", fps.globe >= 20]);
     checks.push(["Playback advanced", useStore.getState().t > 5]);
+    await simulationChecks(lines, checks);
   } catch (e) {
     checks.push([`Exception: ${e instanceof Error ? e.message : String(e)}`, false]);
   }

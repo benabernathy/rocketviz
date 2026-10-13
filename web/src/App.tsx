@@ -4,9 +4,14 @@ import { Toolbar } from "./components/Toolbar";
 import { Transport } from "./components/Transport";
 import { DockLayout } from "./components/DockLayout";
 import { EmptyState } from "./components/EmptyState";
+import { RunBar } from "./components/RunBar";
+import { SimulateDialog } from "./components/SimulateDialog";
+import { SettingsDialog } from "./components/SettingsDialog";
+import { fail } from "./components/Toolbar";
 import { useStore } from "./store";
 import { fluentTheme, useIsDark } from "./theme";
-import { loadFromUrl } from "./data";
+import { loadFromUrl, pickFile, saveFlightAs } from "./data";
+import { isTauri } from "@tauri-apps/api/core";
 import { runSmokeIfRequested } from "./smoke";
 
 const useStyles = makeStyles({
@@ -28,6 +33,7 @@ export default function App() {
   const hasData = useStore(s => s.data != null);
   const [loading, setLoading] = useState(true);
   const togglePlay = useStore(s => s.togglePlay);
+  const running = useStore(s => s.run != null);
 
   useEffect(() => {
     // `?data=<url>` picks a file; otherwise data.json next to the app (rocketviz.py --serve / vite dev provide it).
@@ -39,6 +45,9 @@ export default function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const s0 = useStore.getState(), mod = e.metaKey || e.ctrlKey, idle = !s0.run && !s0.busy && !s0.dialog;
+      if (mod && e.key.toLowerCase() === "o" && idle) { e.preventDefault(); pickFile(fail("Couldn't open")); return; }
+      if (mod && e.key.toLowerCase() === "s" && idle && s0.data && isTauri()) { e.preventDefault(); saveFlightAs().catch(fail("Couldn't save")); return; }
       const el = e.target as HTMLElement;
       if (el.closest("input, textarea, select, [role=combobox], [role=menu], [role=listbox]")) return;
       const s = useStore.getState();
@@ -56,11 +65,16 @@ export default function App() {
     <FluentProvider theme={fluentTheme(dark)} data-theme={dark ? "dark" : "light"}>
       <div className={styles.root}>
         <Toolbar />
+        <RunBar />
         <main className={styles.main}>
           {hasData ? <DockLayout dark={dark} />
-            : <div className={styles.center}>{loading ? <Spinner label="Loading flight data…" /> : <EmptyState />}</div>}
+            : <div className={styles.center}>
+              {loading ? <Spinner label="Loading flight data…" /> : running ? <Spinner label="Simulating the nominal flight…" /> : <EmptyState />}
+            </div>}
         </main>
         {hasData && <Transport />}
+        <SimulateDialog />
+        <SettingsDialog />
       </div>
     </FluentProvider>
   );

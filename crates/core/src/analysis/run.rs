@@ -1,13 +1,15 @@
 //! Running a complete analysis of a design: the nominal flight, a Monte Carlo landing scatter and a wind sweep for
 //! each configuration (what rocketviz.py did, now on the engine pool).
 
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tokio::sync::mpsc;
 
 use super::flight_file::{Conditions, FlightFile, McLanding, SimRecord, SummaryRecord, SweepLanding, VERSION};
 use super::geo::LatLon;
-use crate::engine::protocol::{Case, ConfigInfo, Output, Overrides, Progress};
+use crate::engine::protocol::{Case, ConfigInfo, Output, Overrides, Progress, RunResult};
 use crate::engine::{CancelToken, Design, EnginePool};
 use crate::error::Result;
 use crate::montecarlo::{default_dispersions, generate_cases, MonteCarloSpec, ParamDispersion};
@@ -63,10 +65,32 @@ impl Default for AnalysisSettings {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "stage", rename_all = "snake_case")]
 pub enum AnalysisEvent {
-    Nominal { config_id: String },
-    MonteCarlo { config_id: String, done: u32, total: u32, landing: Option<[f64; 2]> },
-    Sweep { config_id: String, done: u32, total: u32 },
-    ConfigDone { config_id: String },
+    /// A config's nominal flight is starting.
+    Nominal {
+        config_id: String,
+    },
+    /// A config's nominal flight is done: the record so far, without Monte Carlo or sweep landings.
+    NominalDone {
+        config_id: String,
+        sim: Box<SimRecord>,
+    },
+    /// One Monte Carlo case finished (`landing` is `None` if it failed).
+    MonteCarlo {
+        config_id: String,
+        done: u32,
+        total: u32,
+        landing: Option<McLanding>,
+    },
+    /// One wind-sweep case finished.
+    Sweep {
+        config_id: String,
+        done: u32,
+        total: u32,
+        landing: Option<SweepLanding>,
+    },
+    ConfigDone {
+        config_id: String,
+    },
 }
 
 /// Analyzes the given configs of a design (all of them if `config_ids` is empty).
@@ -113,6 +137,21 @@ async fn analyze_config(
     }
     let base = pool.run(design, &id, &nominal, Output::Full).await?;
     let conditions = Conditions::from_protocol(base.conditions.as_ref().unwrap_or(&Default::default()));
+    let mut record = SimRecord {
+        name: format!("{} — {}", config.name, config.motor),
+        config: config.motor.clone(),
+        summary: SummaryRecord::from_run(&base),
+        conditions: conditions.clone(),
+        events: base.events.unwrap_or_default(),
+        t: base.t.unwrap_or_default(),
+        e: base.e.unwrap_or_default(),
+        n: base.n.unwrap_or_default(),
+        alt: base.alt.unwrap_or_default(),
+        series: base.series.unwrap_or_default(),
+        mc: Vec::new(),
+        sweep: Vec::new(),
+    };
+    let _ = events.send(AnalysisEvent::NominalDone { config_id: id.clone(), sim: Box::new(record.clone()) });
 
     // Monte Carlo around the conditions actually flown.
     let mut mc_nominal = config.defaults.clone();
@@ -130,6 +169,7 @@ async fn analyze_config(
     };
     let mc_cases = generate_cases(&spec, &pool.info().parameters)?;
     let mc_id = id.clone();
+    let mc_winds: HashMap<String, (f64, f64)> = mc_cases.iter().map(|c| (c.id.clone(), case_wind(c))).collect();
     let mc = run_cases(
         pool,
         design,
@@ -137,7 +177,8 @@ async fn analyze_config(
         &mc_cases,
         cancel,
         move |p| {
-            let landing = p.result.as_ref().and_then(|r| Some([r.landing.e?, r.landing.n?]));
+            let (wind, dir) = mc_winds.get(&p.case_id).copied().unwrap_or((f64::NAN, f64::NAN));
+            let landing = p.result.as_ref().and_then(|r| mc_landing(r, wind, dir));
             AnalysisEvent::MonteCarlo { config_id: mc_id.clone(), done: p.done, total: p.total, landing }
         },
         events,
@@ -145,14 +186,8 @@ async fn analyze_config(
     .await?
     .into_iter()
     .filter_map(|(case, r)| {
-        let o = &case.overrides;
-        Some(McLanding {
-            e: r.landing.e?,
-            n: r.landing.n?,
-            wind: o.get("wind_speed").and_then(Value::as_f64).unwrap_or(f64::NAN),
-            dir: o.get("wind_direction").and_then(Value::as_f64).unwrap_or(f64::NAN),
-            apogee: r.summary.max_alt.unwrap_or(f64::NAN),
-        })
+        let (wind, dir) = case_wind(case);
+        mc_landing(&r, wind, dir)
     })
     .collect();
 
@@ -170,42 +205,46 @@ async fn analyze_config(
         })
         .collect();
     let sweep_id = id.clone();
+    let sweep_winds: HashMap<String, f64> = sweep_cases.iter().map(|c| (c.id.clone(), case_wind(c).0)).collect();
     let sweep = run_cases(
         pool,
         design,
         &id,
         &sweep_cases,
         cancel,
-        move |p| AnalysisEvent::Sweep { config_id: sweep_id.clone(), done: p.done, total: p.total },
+        move |p| {
+            let wind = sweep_winds.get(&p.case_id).copied().unwrap_or(f64::NAN);
+            let landing = p.result.as_ref().and_then(|r| sweep_landing(r, wind));
+            AnalysisEvent::Sweep { config_id: sweep_id.clone(), done: p.done, total: p.total, landing }
+        },
         events,
     )
     .await?
     .into_iter()
-    .filter_map(|(case, r)| {
-        Some(SweepLanding {
-            wind: case.overrides.get("wind_speed").and_then(Value::as_f64)?,
-            e: r.landing.e?,
-            n: r.landing.n?,
-            apogee: r.summary.max_alt.unwrap_or(f64::NAN),
-        })
-    })
+    .filter_map(|(case, r)| sweep_landing(&r, case_wind(case).0))
     .collect();
 
     let _ = events.send(AnalysisEvent::ConfigDone { config_id: id.clone() });
-    Ok(SimRecord {
-        name: format!("{} — {}", config.name, config.motor),
-        config: config.motor.clone(),
-        summary: SummaryRecord::from_run(&base),
-        conditions,
-        events: base.events.clone().unwrap_or_default(),
-        t: base.t.clone().unwrap_or_default(),
-        e: base.e.clone().unwrap_or_default(),
-        n: base.n.clone().unwrap_or_default(),
-        alt: base.alt.clone().unwrap_or_default(),
-        series: base.series.clone().unwrap_or_default(),
-        mc,
-        sweep,
-    })
+    record.mc = mc;
+    record.sweep = sweep;
+    Ok(record)
+}
+
+/// A case's wind speed and direction overrides (NaN when absent).
+fn case_wind(case: &Case) -> (f64, f64) {
+    let get = |k: &str| case.overrides.get(k).and_then(Value::as_f64).unwrap_or(f64::NAN);
+    (get("wind_speed"), get("wind_direction"))
+}
+
+fn mc_landing(r: &RunResult, wind: f64, dir: f64) -> Option<McLanding> {
+    Some(McLanding { e: r.landing.e?, n: r.landing.n?, wind, dir, apogee: r.summary.max_alt.unwrap_or(f64::NAN) })
+}
+
+fn sweep_landing(r: &RunResult, wind: f64) -> Option<SweepLanding> {
+    if wind.is_nan() {
+        return None;
+    }
+    Some(SweepLanding { wind, e: r.landing.e?, n: r.landing.n?, apogee: r.summary.max_alt.unwrap_or(f64::NAN) })
 }
 
 /// Runs cases as a pool batch, forwarding progress as analysis events; returns (case, result) for those that
@@ -218,7 +257,7 @@ async fn run_cases<'a>(
     cancel: &CancelToken,
     to_event: impl Fn(&Progress) -> AnalysisEvent + Send + 'static,
     events: &mpsc::UnboundedSender<AnalysisEvent>,
-) -> Result<Vec<(&'a Case, crate::engine::protocol::RunResult)>> {
+) -> Result<Vec<(&'a Case, RunResult)>> {
     if cases.is_empty() {
         return Ok(Vec::new());
     }

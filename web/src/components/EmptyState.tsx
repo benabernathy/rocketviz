@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isTauri } from "@tauri-apps/api/core";
 import { Button, Text, makeStyles, shorthands, tokens, MessageBar, MessageBarBody } from "@fluentui/react-components";
 import { FolderOpenRegular, RocketRegular, BeakerRegular } from "@fluentui/react-icons";
 import { SAMPLE_URL, loadFromFile, loadFromUrl, pickFile } from "../data";
@@ -33,11 +34,17 @@ export function EmptyState() {
       onDrop={e => { e.preventDefault(); setOver(false); const f = e.dataTransfer.files[0]; if (f) loadFromFile(f).catch(fail); }}
     >
       <RocketRegular className={styles.icon} />
-      <Text size={500} weight="semibold">Open a flight</Text>
-      <Text>Drop a <span className={styles.code}>.rocketviz.json</span> file here, or create one from an OpenRocket design:</Text>
-      <Text className={styles.code}>uv run rocketviz.py MyRocket.ork --app --serve</Text>
+      {isTauri() ? <>
+        <Text size={500} weight="semibold">Open a rocket</Text>
+        <Text>Open an OpenRocket design (<span className={styles.code}>.ork</span>) to simulate it, or a saved
+          flight (<span className={styles.code}>.rocketviz.json</span>). You can also drop a flight file here.</Text>
+      </> : <>
+        <Text size={500} weight="semibold">Open a flight</Text>
+        <Text>Drop a <span className={styles.code}>.rocketviz.json</span> file here, or create one from an OpenRocket design:</Text>
+        <Text className={styles.code}>uv run rocketviz.py MyRocket.ork --app --serve</Text>
+      </>}
       <div style={{ display: "flex", gap: 8 }}>
-        <Button appearance="primary" icon={<FolderOpenRegular />} onClick={() => pickFile(fail)}>Open file…</Button>
+        <Button appearance="primary" icon={<FolderOpenRegular />} onClick={() => pickFile(fail)}>Open…</Button>
         <Button icon={<BeakerRegular />} onClick={() => loadFromUrl(SAMPLE_URL).catch(fail)}>Open sample flight</Button>
       </div>
       {error && <MessageBar intent="error"><MessageBarBody>{error}</MessageBarBody></MessageBar>}

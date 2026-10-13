@@ -4,11 +4,24 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import type { FlightData, Sim } from "./types";
 import { endTime, type Pad } from "./flight";
+import type { DesignInfo } from "./desktop";
 
 export type ThemeMode = "system" | "light" | "dark";
 export interface PlotSeries { key: string; slot: number }
 export interface PlotRow { id: string; series: PlotSeries[] }
 export interface Layers { mc: boolean; ellipses: boolean; sweep: boolean; follow: boolean }
+export type DialogId = "simulate" | "settings";
+export interface Notice { intent: "error" | "warning" | "success" | "info"; text: string }
+
+/** A running analysis, for the progress bar. */
+export interface RunProgress {
+  /** Labels of the configs being simulated, in order. */
+  configs: string[];
+  index: number;
+  stage: "nominal" | "monte_carlo" | "sweep";
+  done: number;
+  total: number;
+}
 
 const PREFS_KEY = "rocketviz.prefs.v1";
 const DEFAULT_PLOTS: PlotRow[] = [
@@ -17,7 +30,7 @@ const DEFAULT_PLOTS: PlotRow[] = [
   { id: "p3", series: [{ key: "total_acceleration", slot: 0 }] },
 ];
 
-interface Prefs { theme: ThemeMode; speed: number; plots: PlotRow[]; layers: Layers }
+interface Prefs { theme: ThemeMode; speed: number; plots: PlotRow[]; layers: Layers; imagery: string }
 function loadPrefs(): Partial<Prefs> {
   try { return JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}"); } catch { return {}; }
 }
@@ -43,8 +56,26 @@ interface RocketvizState {
   openPanels: string[];
   /** Cesium's frame-rate overlay, for performance testing. */
   showFps: boolean;
+  /** Imagery provider id (see imagery.ts). */
+  imagery: string;
+  /** Bumped when an imagery key changes, so the maps reload their tiles. */
+  imageryEpoch: number;
+  /** File the flight came from (a flight file, or the design it was simulated from). */
+  sourcePath: string | null;
+  /** The flight is a simulation result that hasn't been saved. */
+  dirty: boolean;
+  /** Design open for simulation (desktop app). */
+  design: DesignInfo | null;
+  run: RunProgress | null;
+  /** Something slow without a progress count (e.g. starting an engine); shown in the progress strip. */
+  busy: string | null;
+  dialog: DialogId | null;
+  /** Message shown under the toolbar until dismissed. */
+  notice: Notice | null;
 
   setData(data: FlightData, name: string): void;
+  /** Replaces the data without resetting playback or the camera (a running analysis filling in). */
+  updateData(data: FlightData): void;
   setSim(i: number): void;
   setT(t: number): void;
   setPlaying(on: boolean): void;
@@ -79,8 +110,21 @@ export const useStore = create<RocketvizState>()(subscribeWithSelector((set, get
   frameTick: 0,
   openPanels: [],
   showFps: false,
+  imagery: prefs.imagery ?? "esri",
+  imageryEpoch: 0,
+  sourcePath: null,
+  dirty: false,
+  design: null,
+  run: null,
+  busy: null,
+  dialog: null,
+  notice: null,
 
   setData: (data, name) => set(s => ({ data, dataName: name, simIdx: 0, t: 0, playing: false, pad: siteOf(data, 0), frameTick: s.frameTick + 1 })),
+  updateData: data => set(s => {
+    const simIdx = Math.min(s.simIdx, data.sims.length - 1), sim = data.sims[simIdx];
+    return { data, simIdx, t: sim ? Math.min(s.t, endTime(sim)) : 0 };
+  }),
   setSim: i => set(s => ({ simIdx: i, t: 0, playing: false, pad: s.data ? siteOf(s.data, i) : s.pad, frameTick: s.frameTick + 1 })),
   setT: t => {
     const sim = currentSim(get());
@@ -135,9 +179,9 @@ export const MAX_SERIES_PER_PLOT = 4;
 
 // Persist preferences (not the flight data or playback position).
 useStore.subscribe(
-  s => ({ theme: s.theme, speed: s.speed, plots: s.plots, layers: s.layers }),
+  (s): Prefs => ({ theme: s.theme, speed: s.speed, plots: s.plots, layers: s.layers, imagery: s.imagery }),
   p => { try { localStorage.setItem(PREFS_KEY, JSON.stringify(p)); } catch { /* storage unavailable */ } },
-  { equalityFn: (a, b) => a.theme === b.theme && a.speed === b.speed && a.plots === b.plots && a.layers === b.layers },
+  { equalityFn: (a, b) => (Object.keys(a) as (keyof Prefs)[]).every(k => a[k] === b[k]) },
 );
 
 // Playback clock: one requestAnimationFrame loop advances t for everyone.

@@ -8,7 +8,7 @@ import {
 } from "../flight";
 import type { Sim } from "../types";
 import { debugHooks } from "../smoke";
-import { imagery } from "../imagery";
+import { imagery, onImageryChange } from "../imagery";
 
 const css = (c: string) => Cesium.Color.fromCssColorString(c);
 
@@ -115,11 +115,14 @@ export function Globe3D() {
   const host = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const tiles = imagery();
-    const viewer = new Cesium.Viewer(host.current!, {
-      baseLayer: new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
+    const baseLayer = () => {
+      const tiles = imagery();
+      return new Cesium.ImageryLayer(new Cesium.UrlTemplateImageryProvider({
         url: tiles.url, maximumLevel: tiles.maxZoom, credit: tiles.attribution,
-      })),
+      }));
+    };
+    const viewer = new Cesium.Viewer(host.current!, {
+      baseLayer: baseLayer(),
       terrainProvider: new Cesium.EllipsoidTerrainProvider(),
       baseLayerPicker: false, geocoder: false, timeline: false, animation: false, homeButton: false,
       sceneModePicker: false, navigationHelpButton: false, fullscreenButton: false,
@@ -128,7 +131,8 @@ export function Globe3D() {
     });
     const scene = viewer.scene;
     debugHooks.viewer = viewer;
-    const offImageryError = viewer.imageryLayers.get(0).imageryProvider.errorEvent.addEventListener(() => { debugHooks.imageryErrors++; });
+    const countErrors = () => viewer.imageryLayers.get(0).imageryProvider.errorEvent.addEventListener(() => { debugHooks.imageryErrors++; });
+    let offImageryError = countErrors();
     scene.globe.depthTestAgainstTerrain = false;
     viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
 
@@ -187,6 +191,13 @@ export function Globe3D() {
         scene.requestRender();
       }, { fireImmediately: true }),
       useStore.subscribe(s => s.frameTick, () => { const s = useStore.getState(); if (s.layers.follow) s.setLayer("follow", false); frame(); }),
+      onImageryChange(() => {
+        offImageryError();
+        viewer.imageryLayers.remove(viewer.imageryLayers.get(0), true);
+        viewer.imageryLayers.add(baseLayer(), 0);
+        offImageryError = countErrors();
+        scene.requestRender();
+      }),
     ];
 
     const dbl = new Cesium.ScreenSpaceEventHandler(scene.canvas);

@@ -38,14 +38,34 @@ async fn matches_rocketviz_py() {
     let t0 = std::time::Instant::now();
     let rust = analyze(&pool, &design, &[], &AnalysisSettings::default(), tx, &CancelToken::new()).await.unwrap();
     let elapsed = t0.elapsed();
-    let mut mc_events = 0;
+    // What the app sees while it runs: each nominal flight, then every landing as it finishes. Rebuilt from the
+    // events alone, the result must be the same as the final file (landings in completion order, not case order).
+    let mut streamed: Vec<rocketviz_core::analysis::flight_file::SimRecord> = Vec::new();
     while let Ok(e) = rx.try_recv() {
-        if matches!(e, AnalysisEvent::MonteCarlo { landing: Some(_), .. }) {
-            mc_events += 1;
+        match e {
+            AnalysisEvent::NominalDone { sim, .. } => {
+                assert!(sim.mc.is_empty() && sim.sweep.is_empty() && !sim.t.is_empty());
+                streamed.push(*sim);
+            }
+            AnalysisEvent::MonteCarlo { landing: Some(l), .. } => streamed.last_mut().unwrap().mc.push(l),
+            AnalysisEvent::Sweep { landing: Some(l), .. } => streamed.last_mut().unwrap().sweep.push(l),
+            _ => {}
         }
     }
     eprintln!("full analysis of 2 configs (2 x 150 MC + 2 x 9 sweep) in {elapsed:?}");
-    assert_eq!(mc_events, 300, "every Monte Carlo landing streamed as it finished");
+    assert_eq!(streamed.len(), rust.sims.len(), "a NominalDone per config");
+    for (s, r) in streamed.iter_mut().zip(&rust.sims) {
+        assert_eq!(s.mc.len(), 150, "every Monte Carlo landing streamed as it finished");
+        assert_eq!(s.sweep.len(), 9);
+        let key = |l: &rocketviz_core::analysis::flight_file::McLanding| (l.e.to_bits(), l.n.to_bits());
+        s.mc.sort_by_key(key);
+        let mut final_mc = r.mc.clone();
+        final_mc.sort_by_key(key);
+        assert_eq!(s.mc, final_mc, "streamed landings carry the same values as the final file");
+        s.sweep.sort_by(|a, b| a.wind.total_cmp(&b.wind));
+        assert_eq!(s.sweep, r.sweep);
+        assert_eq!((&s.name, &s.t, &s.summary), (&r.name, &r.t, &r.summary));
+    }
 
     assert_eq!(rust.rocket, python.rocket);
     // Each config has its own launch site (Fizz's two simulations differ in longitude). rocketviz.py wrote the *last*

@@ -138,6 +138,15 @@ impl TileProxy {
         self.keys.read().unwrap().contains_key(provider)
     }
 
+    /// Tries a key by fetching the world tile from the provider's keyed endpoint (never from the cache), so the
+    /// settings screen can reject a mistyped or unauthorized key before saving it.
+    pub async fn check_key(&self, provider: &str, key: &str) -> Result<(), TileError> {
+        let p = self.providers.get(provider).ok_or_else(|| TileError::UnknownProvider(provider.into()))?;
+        let Some(template) = &p.keyed_url else { return Ok(()) };
+        let url = template.replace("{z}", "0").replace("{x}", "0").replace("{y}", "0").replace("{key}", key.trim());
+        self.fetch(p, &url).await.map(|_| ())
+    }
+
     /// Fetches a tile, from the cache when its policy allows.
     pub async fn tile(&self, provider: &str, z: u8, x: u32, y: u32) -> Result<Tile, TileError> {
         let p = self.providers.get(provider).ok_or_else(|| TileError::UnknownProvider(provider.into()))?;
@@ -333,6 +342,8 @@ mod tests {
         assert!(matches!(&err, TileError::Upstream { message, .. } if message.contains("Token Required")), "{err}");
         proxy.set_key("p", "SECRET");
         assert_eq!(proxy.tile("p", 2, 1, 1).await.unwrap().bytes, b"OK");
+        assert!(proxy.check_key("p", " SECRET ").await.is_ok());
+        assert!(matches!(proxy.check_key("p", "WRONG").await, Err(TileError::Upstream { .. })));
     }
 
     #[tokio::test]

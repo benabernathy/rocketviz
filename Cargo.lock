@@ -2798,10 +2798,12 @@ name = "rocketviz"
 version = "0.1.0"
 dependencies = [
  "rocketviz-core",
+ "serde",
  "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
+ "tokio",
 ]
 
 [[package]]

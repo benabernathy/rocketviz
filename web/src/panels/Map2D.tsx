@@ -9,7 +9,7 @@ import { currentSim, useStore } from "../store";
 import { bearing, compass, enuToLonLat, lerp, phaseRanges, sigmaEllipse, PHASE_COLOR, SIGMA_COLOR, type Pad } from "../flight";
 import type { Sim } from "../types";
 import { debugHooks } from "../smoke";
-import { imagery } from "../imagery";
+import { imagery, onImageryChange } from "../imagery";
 
 // MapLibre looks for its worker next to its own module; once bundled that's wrong, so point it at the emitted asset.
 maplibregl.setWorkerUrl(new URL(maplibreWorker, document.baseURI).href);
@@ -18,14 +18,16 @@ type Props = Record<string, string | number | boolean>;
 const fc = (features: Feature<Geometry, Props>[]): FeatureCollection<Geometry, Props> => ({ type: "FeatureCollection", features });
 const feat = (geometry: Geometry, properties: Props = {}): Feature<Geometry, Props> => ({ type: "Feature", geometry, properties });
 
-function mapStyle(): maplibregl.StyleSpecification {
+function imagerySource(): maplibregl.RasterSourceSpecification {
   const tiles = imagery();
+  return { type: "raster", tiles: [tiles.url], tileSize: 256, maxzoom: tiles.maxZoom, attribution: tiles.attribution };
+}
+
+function mapStyle(): maplibregl.StyleSpecification {
   return {
     version: 8,
     glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-    sources: {
-      imagery: { type: "raster", tiles: [tiles.url], tileSize: 256, maxzoom: tiles.maxZoom, attribution: tiles.attribution },
-    },
+    sources: { imagery: imagerySource() },
     layers: [{ id: "imagery", type: "raster", source: "imagery" }],
   };
 }
@@ -161,6 +163,13 @@ export function Map2D() {
         useStore.subscribe(s => s.layers, applyLayers),
         useStore.subscribe(s => [s.t, s.hoverT] as const, onTime, { equalityFn: (a, b) => a[0] === b[0] && a[1] === b[1] }),
         useStore.subscribe(s => s.frameTick, frame),
+        // New provider or key: swap the imagery under the overlays.
+        onImageryChange(() => {
+          map.removeLayer("imagery");
+          map.removeSource("imagery");
+          map.addSource("imagery", imagerySource());
+          map.addLayer({ id: "imagery", type: "raster", source: "imagery" }, map.getStyle().layers[0]?.id);
+        }),
       );
     });
 
