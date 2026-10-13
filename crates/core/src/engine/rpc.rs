@@ -96,8 +96,14 @@ impl Connection {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .kill_on_drop(true);
+        // CREATE_NO_WINDOW: no console window popping up from the GUI app.
         #[cfg(windows)]
-        cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW: no console window popping up from the GUI app
+        cmd.creation_flags(0x0800_0000);
+        // Inside an AppImage the launcher points LD_LIBRARY_PATH at the AppImage's own libraries, which include copies
+        // of some of the bundled Java runtime's; engines must load their runtime's own.
+        if std::env::var_os("APPIMAGE").is_some() {
+            cmd.env_remove("LD_LIBRARY_PATH");
+        }
         let mut child = cmd.spawn().map_err(|source| Error::Spawn { engine: spec.manifest.id.clone(), source })?;
         let stdin = child.stdin.take().expect("piped stdin");
         let stdout = child.stdout.take().expect("piped stdout");

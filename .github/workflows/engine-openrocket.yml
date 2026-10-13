@@ -37,6 +37,10 @@ jobs:
           path: engines/openrocket/lib
           key: openrocket-24.12-4959b72f52f5f607
 
+      - name: patchelf (the Linux runtime build needs it)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y patchelf
+
       - name: Build the bundle and test
         run: ./gradlew bundle test
 

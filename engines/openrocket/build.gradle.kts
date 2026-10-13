@@ -108,8 +108,25 @@ tasks.register<Exec>("jlinkRuntime") {
         "--strip-debug", "--no-man-pages", "--no-header-files", "--compress=zip-6",
         "--output", output.get().asFile.path,
     )
-    // jlink writes some legal notices read-only, which breaks re-copying the runtime into the app on the next build.
-    doLast { output.get().asFile.walk().forEach { it.setWritable(true, true) } }
+    doLast {
+        val jre = output.get().asFile
+        // jlink writes some legal notices read-only, which breaks re-copying the runtime into the app on the next build.
+        jre.walk().forEach { it.setWritable(true, true) }
+        if (System.getProperty("os.name").startsWith("Linux")) prepareForAppImage(jre)
+    }
+}
+
+// The AppImage bundler (linuxdeploy) resolves the libraries of every native file in the app and fails on the JDK's:
+// - they link to libjvm.so, which lives in lib/server/ and is found only because the launcher loads it first, so each
+//   library also gets lib/server/ on its RUNPATH;
+// - the X11 and sound libraries need system libraries (libX*, libasound) a headless engine never uses, so they go.
+// BundleParityTest runs on the result, so this is checked on Linux like everything else.
+fun prepareForAppImage(jre: File) {
+    for (name in listOf("libawt_xawt.so", "libjawt.so", "libsplashscreen.so", "libjsound.so")) jre.resolve("lib/$name").delete()
+    jre.resolve("lib").listFiles { f -> f.name.endsWith(".so") }!!.forEach { lib ->
+        val p = ProcessBuilder("patchelf", "--set-rpath", "\$ORIGIN:\$ORIGIN/server", lib.path).inheritIO().start()
+        check(p.waitFor() == 0) { "patchelf failed on $lib (install it: sudo apt-get install patchelf)" }
+    }
 }
 
 // Everything the desktop app bundles: build/engine/ and build/jre/.
