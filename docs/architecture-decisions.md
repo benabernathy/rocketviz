@@ -66,7 +66,7 @@ web/                  React UI (data layer moves from fetch() to Tauri invoke + 
   - Standard: wind speed and direction, turbulence, rod angle and direction, launch site.
   - Engine-specific, for example: motor impulse scale, Cd scale.
 - **The Monte Carlo UI adapts** to whatever the active engine supports.
-- **Parallelism:** engines parallelize batches when they can. For single-threaded engines, the core runs several instances of the engine.
+- **Parallelism:** engines parallelize batches when they can. When an engine declares `multi_instance`, the core also runs several instances of it. OpenRocket does, because it scales across processes but not across threads (see below).
 - **Progress:** streamed per completed run, so the landing scatter fills in live.
 
 ### 8. Imagery
@@ -86,17 +86,17 @@ web/                  React UI (data layer moves from fetch() to Tauri invoke + 
   - Only public-domain USGS imagery goes into persistent packs.
 - **Offline without packs:** simulation, plots and saved results still work. Only the imagery needs a connection.
 
-## Startup and runtime (engineering defaults, measured 2026-10-12)
-- **Measured costs:**
-  - JVM + OpenRocket init: 2.5 s
-  - loading a `.ork`: 0.35 s
-  - a warm simulation: about 57 ms
-- **Defaults:**
-  - The engine starts at app launch, in parallel with the UI, and stays warm.
-  - An AppCDS class cache is generated at build time to cut JVM startup.
-  - `-Xmx512m`.
-  - The engine restarts automatically if it crashes.
-- **Monte Carlo:** 150 runs take about 8.5 s single-threaded. The target is under 2 s with a parallel batch on 8 cores. That needs a check, in phase 1, that OpenRocket runs safely in parallel when each run uses its own `sim.copy()`.
+## Startup and runtime (measured)
+- **Engine startup:** the Java engine is ready (OpenRocket initialized, design loaded) in about **1.1–1.4 s**, versus 2.5 s through Python/JPype. A warm simulation takes about 22 ms with a 0.05 s time step.
+- **Threads don't scale:** OpenRocket stops getting faster beyond about 3–4 threads in one JVM, because of global state in its simulation code. 8 threads ran at 1.1× sequential speed.
+- **Processes do:** separate JVM processes scale nearly linearly. So the OpenRocket engine declares `multi_instance` and uses at most 3 threads per process, and the **host runs a pool of engine processes**.
+  - The pool defaults to 2 processes and scales with available RAM and cores.
+  - 150 Monte Carlo runs: 3.3 s sequential, **1.5 s** with 2 processes × 3 threads (0.93 GB), 0.9 s with 6 processes (2.1 GB).
+- **JVM settings:** `-Xmx320m -XX:+UseSerialGC -XX:CICompilerCount=2` keep each process near 470 MB. The JVM defaults use about 830 MB.
+- **Startup in the app:** engine processes start at app launch, in parallel with the UI. AppCDS (a class-loading cache) is still to evaluate.
+- **Two OpenRocket pitfalls the engine works around** (also fixed in `orsim.py`, so the current Monte Carlo is correct):
+  - **Turbulence wasn't seedable:** OpenRocket seeds its wind model randomly when a design loads, and the "random seed" option never reaches it. The engine replaces the wind model with a seeded one, so results are reproducible in any process.
+  - **Rod direction was ignored** whenever "launch into wind" was on. An explicit rod direction now turns it off.
 
 ## Plan
 1. **Tauri spike:** wrap the current React app in a minimal Tauri shell and test it on macOS, Windows and Ubuntu/NVIDIA (3D frame rate, playback, rendering).

@@ -1,0 +1,46 @@
+# OpenRocket engine: golden parity, protocol, batch and process tests on every platform the app ships on.
+name: engine-openrocket
+
+on:
+  push:
+    branches: [main, tauri-pivot]
+    paths: ["engines/openrocket/**", "docs/engine-protocol.md", ".github/workflows/engine-openrocket.yml"]
+  pull_request:
+    paths: ["engines/openrocket/**", "docs/engine-protocol.md", ".github/workflows/engine-openrocket.yml"]
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, windows-latest, ubuntu-22.04]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: engines/openrocket
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Cache OpenRocket JAR
+        uses: actions/cache@v6
+        with:
+          path: engines/openrocket/lib
+          key: openrocket-24.12-4959b72f52f5f607
+
+      - name: Test and assemble
+        run: ./gradlew test assembleEngine
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: engine-openrocket-test-report-${{ matrix.os }}
+          path: engines/openrocket/build/reports/tests/test

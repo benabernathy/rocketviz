@@ -1,0 +1,659 @@
+{
+ "source": "OpenRocket 24.12 via JPype, seeded wind model (reference for the Java bridge)",
+ "design": "Fizz.ork",
+ "rocket": "Fizz",
+ "configs": [
+  {
+   "id": "0",
+   "name": "Simulation 1",
+   "motor": "[A8-5]",
+   "cases": [
+    {
+     "id": "default",
+     "overrides": {},
+     "samples": 480,
+     "end_t": 40.3021491997477,
+     "landing": {
+      "e": -63.97891891003394,
+      "n": -0.0021411760196484958
+     },
+     "summary": {
+      "max_alt": 152.2853924469072,
+      "max_speed": 69.93326990011964,
+      "apogee_time": 5.3684086278298775,
+      "flight_time": 40.3021491997477,
+      "landing_speed": 4.728741229046091,
+      "rod_exit_speed": 22.369904417576628
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.06599999999999998
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.23976121783612558
+      },
+      {
+       "type": "BURNOUT",
+       "t": 0.534
+      },
+      {
+       "type": "APOGEE",
+       "t": 5.3684086278298775
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 5.5344999999999995
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 5.5355
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 40.3021491997477
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 40.3021491997477
+      }
+     ]
+    },
+    {
+     "id": "seed-42",
+     "overrides": {
+      "seed": 42
+     },
+     "samples": 418,
+     "end_t": 40.320644954288575,
+     "landing": {
+      "e": -65.08411265179083,
+      "n": -0.0003914111388977886
+     },
+     "summary": {
+      "max_alt": 152.34542484561226,
+      "max_speed": 69.93751558305877,
+      "apogee_time": 5.365442779923992,
+      "flight_time": 40.320644954288575,
+      "landing_speed": 4.780332827051644,
+      "rod_exit_speed": 22.370397047197205
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.06599999999999998
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.23976089495577604
+      },
+      {
+       "type": "BURNOUT",
+       "t": 0.534
+      },
+      {
+       "type": "APOGEE",
+       "t": 5.365442779923992
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 5.5344999999999995
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 5.5355
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 40.320644954288575
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 40.320644954288575
+      }
+     ]
+    },
+    {
+     "id": "west-wind-rod-ne",
+     "overrides": {
+      "wind_speed": 4.0,
+      "wind_direction": 270.0,
+      "rod_angle": 3.0,
+      "rod_direction": 45.0,
+      "seed": 7,
+      "time_step": 0.05
+     },
+     "samples": 592,
+     "end_t": 40.146299186013856,
+     "landing": {
+      "e": 143.17322528506514,
+      "n": 10.591667926194596
+     },
+     "summary": {
+      "max_alt": 151.36862192775305,
+      "max_speed": 69.69518978243963,
+      "apogee_time": 5.3546434266365495,
+      "flight_time": 40.146299186013856,
+      "landing_speed": 6.274253683769589,
+      "rod_exit_speed": 22.365921970228854
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.06599999999999998
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.23976257222988523
+      },
+      {
+       "type": "BURNOUT",
+       "t": 0.534
+      },
+      {
+       "type": "APOGEE",
+       "t": 5.3546434266365495
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 5.534585236699285
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 5.535585236699285
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 40.146299186013856
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 40.146299186013856
+      }
+     ]
+    },
+    {
+     "id": "west-wind-into-wind",
+     "overrides": {
+      "wind_speed": 4.0,
+      "wind_direction": 270.0,
+      "rod_angle": 3.0,
+      "seed": 7,
+      "time_step": 0.05
+     },
+     "samples": 595,
+     "end_t": 39.73061149197485,
+     "landing": {
+      "e": 116.23875064584183,
+      "n": -0.0004685631437588548
+     },
+     "summary": {
+      "max_alt": 149.40369693264986,
+      "max_speed": 69.66346067983511,
+      "apogee_time": 5.3234187385181,
+      "flight_time": 39.73061149197485,
+      "landing_speed": 6.0613419493721885,
+      "rod_exit_speed": 22.362907819714444
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.06599999999999998
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.2397649231917201
+      },
+      {
+       "type": "BURNOUT",
+       "t": 0.534
+      },
+      {
+       "type": "APOGEE",
+       "t": 5.3234187385181
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 5.5344999999999995
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 5.5355
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 39.73061149197485
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 39.73061149197485
+      }
+     ]
+    },
+    {
+     "id": "calm",
+     "overrides": {
+      "wind_speed": 0.0,
+      "turbulence_intensity": 0.0,
+      "seed": 1
+     },
+     "samples": 309,
+     "end_t": 40.384872946356545,
+     "landing": {
+      "e": -0.044754305920713604,
+      "n": -0.0023376240912570297
+     },
+     "summary": {
+      "max_alt": 152.80038252187708,
+      "max_speed": 70.02664332661179,
+      "apogee_time": 5.355144531249989,
+      "flight_time": 40.384872946356545,
+      "landing_speed": 4.378149671071655,
+      "rod_exit_speed": 22.37638726213107
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.06599999999999998
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.23975615134010936
+      },
+      {
+       "type": "BURNOUT",
+       "t": 0.534
+      },
+      {
+       "type": "APOGEE",
+       "t": 5.355144531249989
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 5.5344999999999995
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 5.5355
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 40.384872946356545
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 40.384872946356545
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "1",
+   "name": "Simulation 2",
+   "motor": "[C6-7]",
+   "cases": [
+    {
+     "id": "default",
+     "overrides": {},
+     "samples": 891,
+     "end_t": 119.79605745407201,
+     "landing": {
+      "e": -193.59079240692333,
+      "n": -0.0011720061785243444
+     },
+     "summary": {
+      "max_alt": 513.102890632731,
+      "max_speed": 165.14086970274414,
+      "apogee_time": 8.511562589755377,
+      "flight_time": 119.79605745407201,
+      "landing_speed": 4.891111557799637,
+      "rod_exit_speed": 23.095768970165818
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.07100000000000001
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.17467748497217434
+      },
+      {
+       "type": "BURNOUT",
+       "t": 1.86
+      },
+      {
+       "type": "APOGEE",
+       "t": 8.561562589755377
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 8.86
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 8.860999999999999
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 119.79605745407201
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 119.79605745407201
+      }
+     ]
+    },
+    {
+     "id": "seed-42",
+     "overrides": {
+      "seed": 42
+     },
+     "samples": 860,
+     "end_t": 119.81080680808763,
+     "landing": {
+      "e": -195.17885383193058,
+      "n": -0.004622396289696065
+     },
+     "summary": {
+      "max_alt": 513.1708672249985,
+      "max_speed": 165.15483284645074,
+      "apogee_time": 8.50464335918984,
+      "flight_time": 119.81080680808763,
+      "landing_speed": 4.9279012808757905,
+      "rod_exit_speed": 23.095893215835325
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.07100000000000001
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.17467730439896262
+      },
+      {
+       "type": "BURNOUT",
+       "t": 1.86
+      },
+      {
+       "type": "APOGEE",
+       "t": 8.554643359189841
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 8.86
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 8.860999999999999
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 119.81080680808763
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 119.81080680808763
+      }
+     ]
+    },
+    {
+     "id": "west-wind-rod-ne",
+     "overrides": {
+      "wind_speed": 4.0,
+      "wind_direction": 270.0,
+      "rod_angle": 3.0,
+      "rod_direction": 45.0,
+      "seed": 7,
+      "time_step": 0.05
+     },
+     "samples": 1051,
+     "end_t": 119.60845586850238,
+     "landing": {
+      "e": 430.57225508127664,
+      "n": 30.768462605158213
+     },
+     "summary": {
+      "max_alt": 511.556587387823,
+      "max_speed": 164.9800412263225,
+      "apogee_time": 8.522321826325902,
+      "flight_time": 119.60845586850238,
+      "landing_speed": 6.3826613372238326,
+      "rod_exit_speed": 23.091511577796076
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.07100000000000001
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.17467872471052254
+      },
+      {
+       "type": "BURNOUT",
+       "t": 1.86
+      },
+      {
+       "type": "APOGEE",
+       "t": 8.522321826325902
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 8.86
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 8.860999999999999
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 119.60845586850238
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 119.60845586850238
+      }
+     ]
+    },
+    {
+     "id": "west-wind-into-wind",
+     "overrides": {
+      "wind_speed": 4.0,
+      "wind_direction": 270.0,
+      "rod_angle": 3.0,
+      "seed": 7,
+      "time_step": 0.05
+     },
+     "samples": 1001,
+     "end_t": 117.7984266993631,
+     "landing": {
+      "e": 349.64981511697374,
+      "n": -0.011404103434366968
+     },
+     "summary": {
+      "max_alt": 503.38178966830776,
+      "max_speed": 164.68429834784476,
+      "apogee_time": 8.454887184923011,
+      "flight_time": 117.7984266993631,
+      "landing_speed": 6.340159279695253,
+      "rod_exit_speed": 23.089574377853356
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.07100000000000001
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.17468228799980257
+      },
+      {
+       "type": "BURNOUT",
+       "t": 1.86
+      },
+      {
+       "type": "APOGEE",
+       "t": 8.454887184923011
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 8.86
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 8.860999999999999
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 117.7984266993631
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 117.7984266993631
+      }
+     ]
+    },
+    {
+     "id": "calm",
+     "overrides": {
+      "wind_speed": 0.0,
+      "turbulence_intensity": 0.0,
+      "seed": 1
+     },
+     "samples": 746,
+     "end_t": 120.00135277779414,
+     "landing": {
+      "e": -0.20390950228293128,
+      "n": 0.0003984528267817887
+     },
+     "summary": {
+      "max_alt": 514.4343858929799,
+      "max_speed": 165.25021946507553,
+      "apogee_time": 8.512812484915626,
+      "flight_time": 120.00135277779414,
+      "landing_speed": 4.566891205023748,
+      "rod_exit_speed": 23.0995295006308
+     },
+     "events": [
+      {
+       "type": "LAUNCH",
+       "t": 0.0
+      },
+      {
+       "type": "IGNITION",
+       "t": 0.0
+      },
+      {
+       "type": "LIFTOFF",
+       "t": 0.07100000000000001
+      },
+      {
+       "type": "LAUNCHROD",
+       "t": 0.17467035304503004
+      },
+      {
+       "type": "BURNOUT",
+       "t": 1.86
+      },
+      {
+       "type": "APOGEE",
+       "t": 8.562812484915627
+      },
+      {
+       "type": "EJECTION_CHARGE",
+       "t": 8.86
+      },
+      {
+       "type": "RECOVERY_DEVICE_DEPLOYMENT",
+       "t": 8.860999999999999
+      },
+      {
+       "type": "GROUND_HIT",
+       "t": 120.00135277779414
+      },
+      {
+       "type": "SIMULATION_END",
+       "t": 120.00135277779414
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

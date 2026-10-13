@@ -75,6 +75,19 @@ def _series(branch):
     return out
 
 
+def _seed_wind(options, seed):
+    """Seed turbulence. OpenRocket seeds its wind model randomly when a design loads and setRandomSeed() never
+    reaches it, so swap in a wind model built with our seed (same fix as the Java engine bridge)."""
+    from info.openrocket.core.models.wind import PinkNoiseWindModel
+    from info.openrocket.core.simulation import SimulationOptions
+    model = PinkNoiseWindModel(seed)
+    model.loadFrom(options.getAverageWindModel())
+    field = SimulationOptions.class_.getDeclaredField("averageWindModel")
+    field.setAccessible(True)
+    field.set(options, model)
+    options.setRandomSeed(seed)
+
+
 def run(sim, wind_speed=None, wind_dir_deg=None, turbulence=None,
         rod_angle_deg=None, rod_dir_deg=None, seed=None, timestep=None,
         lat=None, lon=None, all_series=False):
@@ -94,6 +107,8 @@ def run(sim, wind_speed=None, wind_dir_deg=None, turbulence=None,
     if rod_angle_deg is not None:
         o.setLaunchRodAngle(math.radians(rod_angle_deg))
     if rod_dir_deg is not None:
+        # OpenRocket's "launch into wind" replaces the rod direction; an explicit direction must win.
+        o.setLaunchIntoWind(False)
         o.setLaunchRodDirection(math.radians(rod_dir_deg))
     if lat is not None:
         o.setLaunchLatitude(float(lat))
@@ -102,7 +117,7 @@ def run(sim, wind_speed=None, wind_dir_deg=None, turbulence=None,
     if timestep is not None:
         o.setTimeStep(float(timestep))
     if seed is not None:
-        o.setRandomSeed(int(seed))
+        _seed_wind(o, int(seed))
     s.simulate()
     fd = s.getSimulatedData()
     b = fd.getBranch(0)

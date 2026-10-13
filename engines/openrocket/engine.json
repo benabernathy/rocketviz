@@ -1,0 +1,32 @@
+{
+  "protocol": "rocketviz-engine/1",
+  "id": "openrocket",
+  "name": "OpenRocket",
+  "version": "0.1.0",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://openrocket.info",
+  "input_formats": [
+    {
+      "extensions": [
+        "ork"
+      ],
+      "description": "OpenRocket design"
+    }
+  ],
+  "launch": {
+    "runtime": "java",
+    "args": [
+      "-Djava.awt.headless=true",
+      "-Xmx320m",
+      "-XX:+UseSerialGC",
+      "-XX:CICompilerCount=2",
+      "-cp",
+      "${engine_dir}/engine.jar${path_sep}${engine_dir}/OpenRocket-24.12.jar",
+      "net.rocketviz.engine.openrocket.Main"
+    ]
+  },
+  "instances": {
+    "recommended": 2,
+    "memory_mb": 470
+  }
+}

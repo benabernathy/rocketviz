@@ -1,0 +1,19 @@
+rocketviz
+Copyright 2026 Benjamin Abernathy
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE),
+except for the directory engines/openrocket/, which is licensed under the
+GNU General Public License, version 3 or later (see engines/openrocket/LICENSE).
+
+The OpenRocket engine is a separate program. rocketviz starts it as a child
+process and communicates with it only through the documented engine protocol
+(docs/engine-protocol.md), which is part of rocketviz and licensed Apache-2.0.
+
+Distributions of rocketviz include:
+
+- OpenRocket 24.12 (https://openrocket.info), GPL-3.0-or-later.
+  Source: https://github.com/openrocket/openrocket/tree/release-24.12
+- The rocketviz OpenRocket engine bridge (engines/openrocket/), GPL-3.0-or-later.
+  Source: https://github.com/benabernathy/rocketviz/tree/main/engines/openrocket
+- A Java runtime built from Eclipse Temurin (OpenJDK), GPL-2.0 with the
+  Classpath Exception. Source: https://adoptium.net
