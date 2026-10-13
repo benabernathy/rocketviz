@@ -6,16 +6,16 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const cesium = "node_modules/cesium/Build/Cesium";
 
-// In dev, serve flight data at /data.json: $ORVIZ_DATA, else the newest *.orviz.json in the repo root.
-// (In production, `orviz.py --serve` does the same.)
+// In dev, serve flight data at /data.json: $ROCKETVIZ_DATA, else the newest *.rocketviz.json in the repo root.
+// (In production, `rocketviz.py --serve` does the same.)
 function devData(): Plugin {
   return {
-    name: "orviz-dev-data",
+    name: "rocketviz-dev-data",
     configureServer(server) {
       server.middlewares.use("/data.json", (_req, res, next) => {
         const root = path.resolve(import.meta.dirname, "..");
-        const file = process.env.ORVIZ_DATA ?? fs.readdirSync(root)
-          .filter(f => f.endsWith(".orviz.json"))
+        const file = process.env.ROCKETVIZ_DATA ?? fs.readdirSync(root)
+          .filter(f => f.endsWith(".rocketviz.json"))
           .map(f => path.join(root, f))
           .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
         if (!file) return next();

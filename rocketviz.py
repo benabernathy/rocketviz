@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""orviz — turn OpenRocket simulations into a Google Earth flight + recovery map.
+"""rocketviz — turn OpenRocket simulations into a Google Earth flight + recovery map.
 
 Usage:
-  python3 orviz.py Fizz.ork [--lat 38.95776 --lon -80.6] [--mc 150]
+  python3 rocketviz.py Fizz.ork [--lat 38.95776 --lon -80.6] [--mc 150]
                     [--wind 2.0 --wind-from 90] [--sigma-wind 0.6 --sigma-dir 20]
                     [--out Fizz.kml] [--json Fizz.json]
 
@@ -304,7 +304,7 @@ def serve(path, data=None):
 
 
 def serve_app(data):
-    """Serve the React app (web/dist) with `data` (.orviz.json) as its flight data."""
+    """Serve the React app (web/dist) with `data` (.rocketviz.json) as its flight data."""
     index = os.path.join(HERE, "web", "dist", "index.html")
     if not os.path.exists(index):
         sys.exit("web/dist is missing; build the app first:  cd web && npm install && npm run build")
@@ -318,7 +318,7 @@ def sig(v, digits=6):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("ork", help=".ork to simulate, or an existing viewer .html / app .orviz.json to just serve")
+    ap.add_argument("ork", help=".ork to simulate, or an existing viewer .html / app .rocketviz.json to just serve")
     ap.add_argument("--lat", type=float, help="override launch latitude")
     ap.add_argument("--lon", type=float, help="override launch longitude")
     ap.add_argument("--wind", type=float, help="override mean wind speed (m/s)")
@@ -333,7 +333,7 @@ def main():
     ap.add_argument("--json", help="also write trajectories as JSON")
     ap.add_argument("--html", help="also write a self-contained 3D globe viewer (CesiumJS)")
     ap.add_argument("--app", nargs="?", const="", metavar="JSON",
-                    help="also write flight data for the React app (default <rocket>.orviz.json)")
+                    help="also write flight data for the React app (default <rocket>.rocketviz.json)")
     ap.add_argument("--serve", action="store_true",
                     help="open the result in a browser over localhost: the React app with --app, else the --html viewer")
     ap.add_argument("--seed", type=int, default=42)
@@ -346,7 +346,7 @@ def main():
         serve_app(a.ork)
         return
     if a.app == "":
-        a.app = a.ork.rsplit(".", 1)[0] + ".orviz.json"
+        a.app = a.ork.rsplit(".", 1)[0] + ".rocketviz.json"
     if a.serve and not a.app and not a.html:
         a.html = a.ork.rsplit(".", 1)[0] + "_globe.html"
 

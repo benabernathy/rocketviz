@@ -1,6 +1,6 @@
-# orviz architecture decisions
+# rocketviz architecture decisions
 
-orviz is a free, open-source flight visualizer for hobby rocketry. It is moving from a Python CLI plus a web app to a **single packaged desktop app built with Rust and Tauri**. The React UI (Fluent UI 9, dockview, Cesium, MapLibre, uPlot) stays as it is.
+rocketviz is a free, open-source flight visualizer for hobby rocketry. It is moving from a Python CLI plus a web app to a **single packaged desktop app built with Rust and Tauri**. The React UI (Fluent UI 9, dockview, Cesium, MapLibre, uPlot) stays as it is.
 
 Decided 2026-10-12.
 

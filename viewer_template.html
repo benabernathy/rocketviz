@@ -157,7 +157,7 @@ const $ = id => document.getElementById(id);
 if (location.protocol === "file:") {
   const f = decodeURIComponent(location.pathname.split("/").pop());
   $("err").hidden = false;
-  $("err").innerHTML = `<div>This viewer has to be served over http; browsers block CesiumJS's workers on file:// pages.<br><br>From the orviz folder, run <code>uv run orviz.py ${f} --serve</code></div>`;
+  $("err").innerHTML = `<div>This viewer has to be served over http; browsers block CesiumJS's workers on file:// pages.<br><br>From the rocketviz folder, run <code>uv run rocketviz.py ${f} --serve</code></div>`;
   document.querySelectorAll("aside, .bar").forEach(el => el.style.display = "none");
   throw new Error("file:// not supported");
 }

@@ -1,5 +1,5 @@
 [project]
-name = "orviz"
+name = "rocketviz"
 version = "0.1.0"
 description = "Turn OpenRocket simulations into Google Earth KML and a 3D globe viewer"
 readme = "README.md"

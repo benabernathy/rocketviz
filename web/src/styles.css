@@ -2,7 +2,7 @@ html, body, #root { height: 100%; margin: 0; }
 body { overflow: hidden; }
 
 /* Dock: dockview's light/dark themes re-skinned with Fluent tokens (FluentProvider exposes them as CSS vars). */
-.orviz-dock {
+.rocketviz-dock {
   height: 100%;
   --dv-group-view-background-color: var(--colorNeutralBackground1);
   --dv-tabs-and-actions-container-background-color: var(--colorNeutralBackground2);
@@ -26,10 +26,10 @@ body { overflow: hidden; }
   font-family: var(--fontFamilyBase);
 }
 /* Fluent-style active tab: brand underline. */
-.orviz-dock .dv-tab.dv-active-tab { box-shadow: inset 0 -2px 0 var(--colorBrandStroke1); }
-.orviz-dock .dv-groupview:not(.dv-active-group) .dv-tab.dv-active-tab { box-shadow: inset 0 -2px 0 var(--colorNeutralStroke1); }
-.orviz-dock .dv-tab { padding: 0 12px; }
-.orviz-dock .dv-right-actions-container { padding-right: 4px; display: flex; align-items: center; }
+.rocketviz-dock .dv-tab.dv-active-tab { box-shadow: inset 0 -2px 0 var(--colorBrandStroke1); }
+.rocketviz-dock .dv-groupview:not(.dv-active-group) .dv-tab.dv-active-tab { box-shadow: inset 0 -2px 0 var(--colorNeutralStroke1); }
+.rocketviz-dock .dv-tab { padding: 0 12px; }
+.rocketviz-dock .dv-right-actions-container { padding-right: 4px; display: flex; align-items: center; }
 
 /* Cesium chrome */
 .cesium-viewer-bottom { right: 8px !important; left: auto !important; }

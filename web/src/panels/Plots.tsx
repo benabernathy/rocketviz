@@ -38,7 +38,7 @@ const useStyles = makeStyles({
   empty: { display: "grid", placeItems: "center", flex: 1, color: tokens.colorNeutralForeground3, gap: tokens.spacingVerticalS },
 });
 
-const SYNC_KEY = "orviz";
+const SYNC_KEY = "rocketviz";
 const fmt = (v: number | null | undefined) =>
   v == null || Number.isNaN(v) ? "—"
     : Math.abs(v) >= 1e5 || (Math.abs(v) < 1e-3 && v !== 0) ? v.toExponential(3)

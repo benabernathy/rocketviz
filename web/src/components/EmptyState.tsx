@@ -34,8 +34,8 @@ export function EmptyState() {
     >
       <RocketRegular className={styles.icon} />
       <Text size={500} weight="semibold">Open a flight</Text>
-      <Text>Drop a <span className={styles.code}>.orviz.json</span> file here, or create one from an OpenRocket design:</Text>
-      <Text className={styles.code}>uv run orviz.py MyRocket.ork --app --serve</Text>
+      <Text>Drop a <span className={styles.code}>.rocketviz.json</span> file here, or create one from an OpenRocket design:</Text>
+      <Text className={styles.code}>uv run rocketviz.py MyRocket.ork --app --serve</Text>
       <div style={{ display: "flex", gap: 8 }}>
         <Button appearance="primary" icon={<FolderOpenRegular />} onClick={() => pickFile(fail)}>Open file…</Button>
         <Button icon={<BeakerRegular />} onClick={() => loadFromUrl(SAMPLE_URL).catch(fail)}>Open sample flight</Button>

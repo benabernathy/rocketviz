@@ -71,7 +71,7 @@ export function Toolbar() {
     <header className={styles.bar}>
       <div className={styles.brand}>
         <RocketRegular className={styles.logo} />
-        <Text weight="semibold" size={400}>{data?.rocket ?? "orviz"}</Text>
+        <Text weight="semibold" size={400}>{data?.rocket ?? "rocketviz"}</Text>
         {data && <Text size={200} className={styles.sub}>{dataName}</Text>}
       </div>
 
@@ -84,7 +84,7 @@ export function Toolbar() {
       <div className={styles.spacer} />
 
       <FToolbar size="small" aria-label="View">
-        <Tooltip content="Open a .orviz.json flight file" relationship="description">
+        <Tooltip content="Open a .rocketviz.json flight file" relationship="description">
           <ToolbarButton icon={<FolderOpenRegular />} onClick={() => pickFile(e => setError(e.message))}>Open</ToolbarButton>
         </Tooltip>
         {data && <>

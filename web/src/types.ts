@@ -1,4 +1,4 @@
-// Shape of <rocket>.orviz.json, written by `orviz.py --app`.
+// Shape of <rocket>.rocketviz.json, written by `rocketviz.py --app`.
 
 export interface Series {
   key: string;

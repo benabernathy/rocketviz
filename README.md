@@ -1,4 +1,4 @@
-# orviz: OpenRocket → Google Earth / 3D globe
+# rocketviz: OpenRocket → Google Earth / 3D globe
 
 Runs the simulations in your `.ork` with OpenRocket itself (headless), then writes:
 
@@ -24,9 +24,9 @@ Put the JAR next to `orsim.py`. Needs Java 17+.
 
 ## Use
 ```
-uv run orviz.py MyRocket.ork --serve                # simulate, write the viewer, open it in a browser
-uv run orviz.py MyRocket_globe.html --serve         # reopen an existing viewer without re-simulating
-uv run orviz.py MyRocket.ork --lat 40.3 --lon -104.9 --wind 4 --wind-from 270 --mc 300
+uv run rocketviz.py MyRocket.ork --serve                # simulate, write the viewer, open it in a browser
+uv run rocketviz.py MyRocket_globe.html --serve         # reopen an existing viewer without re-simulating
+uv run rocketviz.py MyRocket.ork --lat 40.3 --lon -104.9 --wind 4 --wind-from 270 --mc 300
 ```
 Options:
 - `--sims 0,2`: pick which simulations to run
@@ -52,10 +52,10 @@ cd web && npm install && npm run build
 ```
 Then simulate and open:
 ```
-uv run orviz.py MyRocket.ork --app --serve      # writes MyRocket.orviz.json and opens the app
-uv run orviz.py MyRocket.orviz.json             # reopen saved results without re-simulating
+uv run rocketviz.py MyRocket.ork --app --serve      # writes MyRocket.rocketviz.json and opens the app
+uv run rocketviz.py MyRocket.rocketviz.json             # reopen saved results without re-simulating
 ```
-For development, run `cd web && npm run dev`. It serves the newest `*.orviz.json` in the repo, or `$ORVIZ_DATA`, at `/data.json`. The app can also open a `.orviz.json` by file picker or drag-and-drop.
+For development, run `cd web && npm run dev`. It serves the newest `*.rocketviz.json` in the repo, or `$ROCKETVIZ_DATA`, at `/data.json`. The app can also open a `.rocketviz.json` by file picker or drag-and-drop.
 
 The single-file viewer (`--html`) remains available.
 

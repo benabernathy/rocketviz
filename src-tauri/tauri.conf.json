@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "orviz",
+  "productName": "rocketviz",
   "version": "0.1.0",
-  "identifier": "net.babernathy.orviz",
+  "identifier": "net.rocketviz",
   "build": {
     "beforeDevCommand": {
       "script": "npm run dev -- --port 5173 --strictPort",
@@ -19,7 +19,7 @@
   "app": {
     "windows": [
       {
-        "title": "orviz",
+        "title": "rocketviz",
         "width": 1600,
         "height": 1000,
         "minWidth": 900,

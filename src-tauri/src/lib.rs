@@ -1,20 +1,20 @@
-/// Reads a flight file (.orviz.json) chosen by the user in the native open dialog.
+/// Reads a flight file (.rocketviz.json) chosen by the user in the native open dialog.
 #[tauri::command]
 fn read_flight(path: String) -> Result<String, String> {
     std::fs::read_to_string(&path).map_err(|e| format!("{path}: {e}"))
 }
 
-/// True when launched with ORVIZ_SMOKE=1: the frontend runs its self-test and reports back.
+/// True when launched with ROCKETVIZ_SMOKE=1: the frontend runs its self-test and reports back.
 #[tauri::command]
 fn smoke_enabled() -> bool {
-    std::env::var("ORVIZ_SMOKE").is_ok_and(|v| v == "1")
+    std::env::var("ROCKETVIZ_SMOKE").is_ok_and(|v| v == "1")
 }
 
 /// Prints the frontend's self-test report, saves it to the temp dir (Windows GUI builds have no console),
 /// and exits non-zero if the test failed.
 #[tauri::command]
 fn smoke_report(app: tauri::AppHandle, report: String, ok: bool) {
-    let path = std::env::temp_dir().join("orviz-smoke.txt");
+    let path = std::env::temp_dir().join("rocketviz-smoke.txt");
     let saved = match std::fs::write(&path, &report) {
         Ok(()) => format!("Report saved to {}", path.display()),
         Err(e) => format!("Could not save report to {}: {e}", path.display()),
@@ -38,5 +38,5 @@ pub fn run() {
             smoke_report
         ])
         .run(tauri::generate_context!())
-        .expect("error while running orviz");
+        .expect("error while running rocketviz");
 }

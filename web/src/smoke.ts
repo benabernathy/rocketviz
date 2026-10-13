@@ -1,4 +1,4 @@
-// Desktop self-test (ORVIZ_SMOKE=1): open the sample flight, wait for imagery, play it while measuring frame
+// Desktop self-test (ROCKETVIZ_SMOKE=1): open the sample flight, wait for imagery, play it while measuring frame
 // rates, then report to the Rust shell, which prints the report and exits. Used to compare webviews per platform.
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import type { Viewer } from "cesium";
@@ -51,7 +51,7 @@ async function measure(ms: number) {
 
 export async function runSmokeIfRequested() {
   if (!isTauri() || !(await invoke<boolean>("smoke_enabled").catch(() => false))) return;
-  const lines: string[] = ["=== orviz smoke test ==="];
+  const lines: string[] = ["=== rocketviz smoke test ==="];
   const checks: [string, boolean][] = [];
   try {
     await loadFromUrl(SAMPLE_URL);

@@ -30,7 +30,7 @@ export default function App() {
   const togglePlay = useStore(s => s.togglePlay);
 
   useEffect(() => {
-    // `?data=<url>` picks a file; otherwise data.json next to the app (orviz.py --serve / vite dev provide it).
+    // `?data=<url>` picks a file; otherwise data.json next to the app (rocketviz.py --serve / vite dev provide it).
     const url = new URLSearchParams(location.search).get("data") ?? "data.json";
     loadFromUrl(url)
       .catch(() => { /* no bundled data: show the open-file screen */ })

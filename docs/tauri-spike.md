@@ -8,14 +8,14 @@ The spike wraps the existing React app in a minimal Tauri shell. It answers one 
 | Windows | WebView2 |
 | Linux | WebKitGTK |
 
-The OpenRocket engine is not part of the spike. The app opens `.orviz.json` files and includes a sample flight.
+The OpenRocket engine is not part of the spike. The app opens `.rocketviz.json` files and includes a sample flight.
 
 ## Get a build
 
 **From CI (once the repo is on GitHub):** the `desktop` workflow builds unsigned installers for each platform and attaches them as artifacts on the workflow run:
-- `orviz-macos-arm64`: `.dmg`
-- `orviz-windows-x64`: `.exe` and `.msi`
-- `orviz-linux-x64`: `.AppImage` and `.deb`
+- `rocketviz-macos-arm64`: `.dmg`
+- `rocketviz-windows-x64`: `.exe` and `.msi`
+- `rocketviz-linux-x64`: `.AppImage` and `.deb`
 
 **Or build locally** (needs Node 22+ and Rust stable):
 ```
@@ -38,11 +38,11 @@ This opens a window, loads the sample flight, waits for imagery, plays the fligh
 
 | Platform | Command |
 |---|---|
-| macOS | `ORVIZ_SMOKE=1 /Applications/orviz.app/Contents/MacOS/orviz` (or the built `src-tauri/target/release/bundle/macos/orviz.app/...`) |
-| Windows (PowerShell) | `$env:ORVIZ_SMOKE=1; & "C:\Program Files\orviz\orviz.exe"` (or `src-tauri\target\release\orviz.exe`). Read the report from the temp file (below). |
-| Linux | `ORVIZ_SMOKE=1 ./orviz_0.1.0_amd64.AppImage` (or `src-tauri/target/release/orviz`) |
+| macOS | `ROCKETVIZ_SMOKE=1 /Applications/rocketviz.app/Contents/MacOS/rocketviz` (or the built `src-tauri/target/release/bundle/macos/rocketviz.app/...`) |
+| Windows (PowerShell) | `$env:ROCKETVIZ_SMOKE=1; & "C:\Program Files\rocketviz\rocketviz.exe"` (or `src-tauri\target\release\rocketviz.exe`). Read the report from the temp file (below). |
+| Linux | `ROCKETVIZ_SMOKE=1 ./rocketviz_0.1.0_amd64.AppImage` (or `src-tauri/target/release/rocketviz`) |
 
-The report is also saved to the temp folder as `orviz-smoke.txt`:
+The report is also saved to the temp folder as `rocketviz-smoke.txt`:
 - macOS and Linux: `$TMPDIR` or `/tmp`
 - Windows: `%TEMP%`. Release builds there don't attach a console, so read the report from this file.
 
@@ -52,7 +52,7 @@ The report is also saved to the temp folder as `orviz-smoke.txt`:
 1. Open **View → Show 3D frame rate**. Orbit and zoom the globe (drag, right-drag, scroll) and play the flight. The overlay should stay near the display's refresh rate.
 2. Open **View → Diagnostics…** and check **GPU renderer**. If it says `llvmpipe`, `SwiftShader` or "software", WebGL isn't using the GPU.
 3. Drag tabs to re-dock panels, then maximize and restore the Plots panel. Scrub a plot and confirm both maps follow.
-4. Open a `.orviz.json` with **Open**. It should use the native file dialog.
+4. Open a `.rocketviz.json` with **Open**. It should use the native file dialog.
 
 ## Results
 

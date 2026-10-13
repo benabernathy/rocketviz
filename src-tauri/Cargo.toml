@@ -1,5 +1,5 @@
 [package]
-name = "orviz"
+name = "rocketviz"
 version = "0.1.0"
 description = "Flight visualizer for hobby rocketry"
 authors = ["Benjamin Abernathy"]
@@ -7,7 +7,7 @@ license = "Apache-2.0"
 edition = "2021"
 
 [lib]
-name = "orviz_lib"
+name = "rocketviz_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

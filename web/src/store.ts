@@ -10,7 +10,7 @@ export interface PlotSeries { key: string; slot: number }
 export interface PlotRow { id: string; series: PlotSeries[] }
 export interface Layers { mc: boolean; ellipses: boolean; sweep: boolean; follow: boolean }
 
-const PREFS_KEY = "orviz.prefs.v1";
+const PREFS_KEY = "rocketviz.prefs.v1";
 const DEFAULT_PLOTS: PlotRow[] = [
   { id: "p1", series: [{ key: "altitude", slot: 0 }] },
   { id: "p2", series: [{ key: "total_velocity", slot: 0 }, { key: "vertical_velocity", slot: 1 }] },
@@ -23,7 +23,7 @@ function loadPrefs(): Partial<Prefs> {
 }
 const prefs = loadPrefs();
 
-interface OrvizState {
+interface RocketvizState {
   data: FlightData | null;
   dataName: string;
   simIdx: number;
@@ -64,7 +64,7 @@ interface OrvizState {
 
 let nextId = Date.now();
 
-export const useStore = create<OrvizState>()(subscribeWithSelector((set, get) => ({
+export const useStore = create<RocketvizState>()(subscribeWithSelector((set, get) => ({
   data: null,
   dataName: "",
   simIdx: 0,
@@ -117,7 +117,7 @@ export const useStore = create<OrvizState>()(subscribeWithSelector((set, get) =>
   frame: () => set(s => ({ frameTick: s.frameTick + 1 })),
 })));
 
-export function currentSim(s: Pick<OrvizState, "data" | "simIdx">): Sim | null {
+export function currentSim(s: Pick<RocketvizState, "data" | "simIdx">): Sim | null {
   return s.data?.sims[s.simIdx] ?? null;
 }
 export const useSim = () => useStore(s => currentSim(s));

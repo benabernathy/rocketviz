@@ -13,7 +13,7 @@ import { Plots } from "../panels/Plots";
 import { FlightInfo } from "../panels/FlightInfo";
 import { useStore } from "../store";
 
-const LAYOUT_KEY = "orviz.layout.v1";
+const LAYOUT_KEY = "rocketviz.layout.v1";
 export const PANELS: Record<string, { title: string; component: React.FunctionComponent<IDockviewPanelProps> }> = {
   globe: { title: "3D view", component: Globe3D },
   map: { title: "Map", component: Map2D },
@@ -101,7 +101,7 @@ export function DockLayout({ dark }: { dark: boolean }) {
 
   return (
     <DockviewReact
-      className="orviz-dock"
+      className="rocketviz-dock"
       components={components}
       onReady={onReady}
       theme={dark ? themeDark : themeLight}
