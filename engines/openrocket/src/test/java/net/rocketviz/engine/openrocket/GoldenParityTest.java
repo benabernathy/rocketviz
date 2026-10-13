@@ -17,8 +17,9 @@ import org.junit.jupiter.api.TestFactory;
  *
  * <p>On that platform the match is exact. Elsewhere, Java's {@code Math} functions may differ in the last bit between
  * CPU architectures, and OpenRocket's adaptive time step turns that into slightly different sampling, so results are
- * compared within physical tolerances instead. These are far tighter than what the test guards against: getting the
- * seeding or an override wrong moves the landing point by about a metre.
+ * compared within physical tolerances instead (landing 5 cm, apogee 1 cm, event times one time step). Measured on
+ * x86 Linux and Windows CI: landings within 8 mm. Getting the seeding or an override wrong moves the landing by about
+ * a metre, so the check still catches the bugs it exists for.
  */
 class GoldenParityTest {
     /** Exact on the platform that generated the golden file; {@code -Dgolden.strict=false} forces tolerances. */
@@ -27,7 +28,11 @@ class GoldenParityTest {
     private static final double EXACT = 1e-9;
     private static final double LANDING_M = 0.05;
     private static final double ALTITUDE_M = 0.01;
-    private static final double TIME_S = 0.01;
+    /**
+     * Event times can shift by one simulation step (up to 0.05 s): apogee, for instance, is detected at whichever step
+     * crosses it, and near apogee vertical speed is ~0. Apogee altitude still agrees to the millimetre.
+     */
+    private static final double TIME_S = 0.06;
     private static final double SPEED_MS = 0.01;
 
     @TestFactory
