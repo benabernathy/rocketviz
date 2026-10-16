@@ -18,17 +18,25 @@ import org.junit.jupiter.api.Test;
 
 /** The engine as the host runs it: a separate JVM whose stdout carries nothing but protocol messages. */
 class EngineProcessTest {
-    @Test
-    void speaksOnlyProtocolOnStdout() throws Exception {
+    private static Process spawn(Path stderr) throws Exception {
         String java = Path.of(System.getProperty("java.home"), "bin", "java").toString();
-        Path stderr = Files.createTempFile("engine-stderr", ".log");
-        Process p = new ProcessBuilder(List.of(java, "-Djava.awt.headless=true", "-Xmx512m",
+        return new ProcessBuilder(List.of(java, "-Djava.awt.headless=true", "-Xmx512m",
                 "-cp", System.getProperty("java.class.path"), Main.class.getName()))
             .redirectError(stderr.toFile())
             .start();
-        RpcClient c = new RpcClient(
+    }
+
+    private static RpcClient client(Process p) {
+        return new RpcClient(
             new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8)),
             new OutputStreamWriter(p.getOutputStream(), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void speaksOnlyProtocolOnStdout() throws Exception {
+        Path stderr = Files.createTempFile("engine-stderr", ".log");
+        Process p = spawn(stderr);
+        RpcClient c = client(p);
 
         long t0 = System.nanoTime();
         JsonObject init = c.call("initialize", obj("protocol_version", 1));
@@ -49,5 +57,26 @@ class EngineProcessTest {
             c.rawLines.forEach(l -> assertTrue(l.startsWith("{\"jsonrpc\":\"2.0\""), l));
         }
         System.err.println("engine process: initialize + load in " + readyMs + " ms; stderr " + new File(stderr.toString()).length() + " bytes");
+    }
+
+    /**
+     * A design opened before OpenRocket's motor database has finished loading. OpenRocket's own provider shows a Swing
+     * dialog then, which fails headless; most designs (not Fizz) hit it.
+     */
+    @Test
+    void loadsDesignRightAfterStartup() throws Exception {
+        Path stderr = Files.createTempFile("engine-stderr", ".log");
+        Process p = spawn(stderr);
+        RpcClient c = client(p);
+        try {
+            assertTrue(c.call("initialize", obj("protocol_version", 1)).has("result"));
+            JsonObject load = c.call("load", obj("path", Fixtures.example("A simple model rocket.ork").toString()));
+            assertTrue(load.has("result"), load.toString());
+            assertTrue(c.call("shutdown", null).get("result").isJsonNull());
+            c.notifyEngine("exit", null);
+            assertTrue(p.waitFor(30, TimeUnit.SECONDS), "engine exited");
+        } finally {
+            p.destroyForcibly();
+        }
     }
 }

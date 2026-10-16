@@ -23,6 +23,17 @@ final class Fixtures {
         return p;
     }
 
+    /** One of the example designs inside the OpenRocket JAR, copied to a real file. */
+    static Path example(String name) throws IOException {
+        Path p = Files.createTempFile("example", ".ork");
+        p.toFile().deleteOnExit();
+        try (InputStream in = Fixtures.class.getResourceAsStream("/datafiles/examples/" + name)) {
+            if (in == null) throw new IOException("no example " + name);
+            Files.copy(in, p, StandardCopyOption.REPLACE_EXISTING);
+        }
+        return p;
+    }
+
     static JsonObject golden() throws IOException {
         try (InputStream in = Fixtures.class.getResourceAsStream("/golden/fizz.json")) {
             return JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();

@@ -4,7 +4,14 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provider;
+import com.google.inject.Scopes;
+import com.google.inject.util.Modules;
+import info.openrocket.core.database.MotorDatabaseLoader;
+import info.openrocket.core.database.motor.MotorDatabase;
+import info.openrocket.core.database.motor.ThrustCurveMotorSetDatabase;
 import info.openrocket.core.document.OpenRocketDocument;
 import info.openrocket.core.document.Simulation;
 import info.openrocket.core.file.GeneralRocketLoader;
@@ -43,8 +50,13 @@ public final class OpenRocketEngine {
                 ((Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)).setLevel(Level.ERROR);
                 // GuiModule provides the component and motor database loaders OpenRocket needs even when headless.
                 GuiModule gui = new GuiModule();
-                Application.setInjector(Guice.createInjector(gui, new PluginModule()));
+                // ...except its motor database provider opens a Swing "loading" dialog when a design is opened before
+                // the motors finish loading, which fails headless. Ours waits instead.
+                MotorDatabaseLoader motors = new MotorDatabaseLoader();
+                System.setProperty("openrocket.bypass.motors", "true"); // stop GuiModule loading its own copy
+                Application.setInjector(Guice.createInjector(Modules.override(gui).with(motorModule(motors)), new PluginModule()));
                 gui.startLoader();
+                motors.startLoading();
                 READY.complete(null);
             } catch (Throwable e) {
                 READY.completeExceptionally(e);
@@ -52,6 +64,20 @@ public final class OpenRocketEngine {
         }, "openrocket-startup");
         t.setDaemon(true);
         t.start();
+    }
+
+    private static AbstractModule motorModule(MotorDatabaseLoader motors) {
+        return new AbstractModule() {
+            @Override
+            protected void configure() {
+                Provider<ThrustCurveMotorSetDatabase> db = () -> {
+                    motors.blockUntilLoaded();
+                    return motors.getDatabase();
+                };
+                bind(ThrustCurveMotorSetDatabase.class).toProvider(db).in(Scopes.SINGLETON);
+                bind(MotorDatabase.class).toProvider(db).in(Scopes.SINGLETON);
+            }
+        };
     }
 
     static void awaitReady() throws RpcException {
